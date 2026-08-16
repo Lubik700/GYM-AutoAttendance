@@ -1,0 +1,22 @@
+{% extends "app/base.html" %}
+
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<script src="https://cdn.tailwindcss.com"></script>
+<div class="min-h-screen flex items-center justify-center bg-gray-100">
+    <div class="bg-white p-8 rounded-xl shadow-lg">
+        <h1 class="text-4xl font-bold text-blue-600">
+            Hello Django + Tailwind!
+        </h1>
+
+        <p class="mt-4 text-gray-600">
+            Tailwind is working!
+        </p>
+
+        <button class="mt-6 bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg">
+            Join Now
+        </button>
+    </div>
+</div>
+{% endblock %}

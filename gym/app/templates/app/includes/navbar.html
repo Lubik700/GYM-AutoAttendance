@@ -1,0 +1,342 @@
+{% load static %}
+
+<!-- ==================== RESPONSIVE NAVBAR ==================== -->
+<nav class="bg-[#1E1E1E] border-b border-white/5 sticky top-0 z-50 shadow-lg shadow-black/20">
+    <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+        <div class="flex items-center justify-between h-14 sm:h-16">
+
+            <!-- ========== LEFT: LOGO ========== -->
+            <div class="flex items-center flex-shrink-0">
+                <a href="{% url 'home' %}" class="flex items-center gap-2 group">
+                    <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-[#E53935]/20 flex items-center justify-center group-hover:bg-[#E53935]/30 transition-colors duration-200">
+                        <svg class="w-4 h-4 sm:w-5 sm:h-5 text-[#E53935]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                        </svg>
+                    </div>
+                    <span class="font-bold text-white text-base sm:text-lg tracking-tight hidden xs:block sm:block">
+                        FitTrack
+                    </span>
+                </a>
+            </div>
+
+            <!-- ========== CENTER: DESKTOP NAV LINKS ========== -->
+            <div class="hidden lg:flex items-center gap-0.5 xl:gap-1">
+                <a href="{% url 'notices' %}"
+                   class="px-2.5 xl:px-3.5 py-2 rounded-lg text-sm font-medium text-gray-300 hover:text-white hover:bg-white/5 transition-all duration-200 whitespace-nowrap
+                          {% if request.resolver_match.url_name == 'notices' %} !text-white bg-white/10 {% endif %}">
+                    Notices
+                </a>
+                <a href="{% url 'membership' %}"
+                   class="px-2.5 xl:px-3.5 py-2 rounded-lg text-sm font-medium text-gray-300 hover:text-white hover:bg-white/5 transition-all duration-200 whitespace-nowrap
+                          {% if request.resolver_match.url_name == 'membership' %} !text-white bg-white/10 {% endif %}">
+                    Membership
+                </a>
+                <a href="{% url 'equipment' %}"
+                   class="px-2.5 xl:px-3.5 py-2 rounded-lg text-sm font-medium text-gray-300 hover:text-white hover:bg-white/5 transition-all duration-200 whitespace-nowrap
+                          {% if request.resolver_match.url_name == 'equipment' %} !text-white bg-white/10 {% endif %}">
+                    Equipment
+                </a>
+                <a href="{% url 'trainers' %}"
+                   class="px-2.5 xl:px-3.5 py-2 rounded-lg text-sm font-medium text-gray-300 hover:text-white hover:bg-white/5 transition-all duration-200 whitespace-nowrap
+                          {% if request.resolver_match.url_name == 'trainers' %} !text-white bg-white/10 {% endif %}">
+                    Trainers
+                </a>
+                <a href="{% url 'workout_plan' %}"
+                   class="px-2.5 xl:px-3.5 py-2 rounded-lg text-sm font-medium text-gray-300 hover:text-white hover:bg-white/5 transition-all duration-200 whitespace-nowrap
+                          {% if request.resolver_match.url_name == 'workout_plan' %} !text-white bg-white/10 {% endif %}">
+                    Workout Plan
+                </a>
+                <a href="{% url 'feedback' %}"
+                   class="px-2.5 xl:px-3.5 py-2 rounded-lg text-sm font-medium text-gray-300 hover:text-white hover:bg-white/5 transition-all duration-200 whitespace-nowrap
+                          {% if request.resolver_match.url_name == 'feedback' %} !text-white bg-white/10 {% endif %}">
+                    Feedback
+                </a>
+            </div>
+
+            <!-- ========== RIGHT: PROFILE + LOGOUT + MOBILE TOGGLE ========== -->
+            <div class="flex items-center gap-2 sm:gap-3">
+
+                {% if user.is_authenticated %}
+
+                    <!-- Profile Avatar Button -->
+                    <div class="relative" id="profileDropdown">
+                        <button type="button"
+                                id="profileBtn"
+                                onclick="toggleProfileDropdown()"
+                                class="flex items-center gap-2 rounded-full p-0.5 focus:outline-none focus:ring-2 focus:ring-[#E53935] focus:ring-offset-2 focus:ring-offset-[#1E1E1E] group"
+                                aria-expanded="false"
+                                aria-haspopup="true">
+
+                            <!-- Avatar Circle -->
+                            <div class="relative flex-shrink-0">
+                                {% if user.profile.avatar %}
+                                    <img src="{{ user.profile.avatar.url }}"
+                                         alt="Profile"
+                                         class="w-8 h-8 sm:w-9 sm:h-9 rounded-full object-cover border-2 border-transparent group-hover:border-[#E53935] transition-all duration-200">
+                                {% else %}
+                                    <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-[#E53935]/20 border-2 border-transparent group-hover:border-[#E53935] flex items-center justify-center transition-all duration-200">
+                                        <span class="text-[#E53935] font-semibold text-xs sm:text-sm select-none">
+                                            {{ user.first_name|first|default:user.username|first|upper }}{{ user.last_name|first|default:''|upper }}
+                                        </span>
+                                    </div>
+                                {% endif %}
+                                <!-- Online dot -->
+                                <span class="absolute bottom-0 right-0 block w-2 h-2 sm:w-2.5 sm:h-2.5 rounded-full bg-[#43A047] border-2 border-[#1E1E1E]"></span>
+                            </div>
+
+                            <!-- Name + Chevron (md and up) -->
+                            <div class="hidden md:flex items-center gap-1.5 pr-1">
+                                <div class="text-left leading-tight">
+                                    <p class="text-sm font-medium text-white max-w-[120px] truncate">
+                                        {{ user.get_full_name|default:user.username }}
+                                    </p>
+                                    <p class="text-[11px] text-gray-400">Profile</p>
+                                </div>
+                                <svg id="profileChevron" class="w-4 h-4 text-gray-400 group-hover:text-white transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                </svg>
+                            </div>
+                        </button>
+
+                        <!-- Profile Dropdown Menu -->
+                        <div id="profileMenu"
+                             class="hidden absolute right-0 mt-2 w-64 origin-top-right rounded-xl bg-[#2A2A2A] border border-white/10 shadow-2xl z-50 overflow-hidden"
+                             role="menu">
+
+                            <!-- User Info -->
+                            <div class="px-4 py-3 bg-[#121212]/60 border-b border-white/5">
+                                <p class="text-sm font-semibold text-white truncate">
+                                    {{ user.get_full_name|default:user.username }}
+                                </p>
+                                <p class="text-xs text-gray-400 truncate mt-0.5">{{ user.email }}</p>
+                            </div>
+
+                            <!-- Links -->
+                            <div class="py-1.5">
+                                <a href="{% url 'profile' %}"
+                                   class="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-300 hover:bg-white/5 hover:text-white transition-colors"
+                                   role="menuitem">
+                                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                    </svg>
+                                    My Profile
+                                </a>
+                                <a href="{% url 'membership' %}"
+                                   class="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-300 hover:bg-white/5 hover:text-white transition-colors"
+                                   role="menuitem">
+                                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+                                    </svg>
+                                    Membership
+                                </a>
+                                <a href="{% url 'settings' %}"
+                                   class="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-300 hover:bg-white/5 hover:text-white transition-colors"
+                                   role="menuitem">
+                                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                    </svg>
+                                    Settings
+                                </a>
+                            </div>
+
+                            <!-- Logout inside dropdown -->
+                            <div class="border-t border-white/5 py-1.5">
+                                <form method="post" action="{% url 'logout' %}">
+                                    {% csrf_token %}
+                                    <button type="submit"
+                                            class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-[#E53935] hover:bg-[#E53935]/10 transition-colors"
+                                            role="menuitem">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                                        </svg>
+                                        Logout
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Standalone Logout (visible on xl screens) -->
+                    <form method="post" action="{% url 'logout' %}" class="hidden xl:block">
+                        {% csrf_token %}
+                        <button type="submit"
+                                class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium text-gray-300
+                                       hover:text-[#E53935] hover:bg-[#E53935]/10 border border-transparent hover:border-[#E53935]/30
+                                       transition-all duration-200">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                            </svg>
+                            <span>Logout</span>
+                        </button>
+                    </form>
+
+                {% else %}
+                    <!-- Guest: Login button -->
+                    <a href="{% url 'login' %}"
+                       class="px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-lg text-sm font-medium text-white bg-[#E53935] hover:bg-red-600 transition-colors duration-200">
+                        Sign In
+                    </a>
+                {% endif %}
+
+                <!-- Mobile Hamburger Button -->
+                <button type="button"
+                        id="mobileMenuBtn"
+                        onclick="toggleMobileMenu()"
+                        class="lg:hidden inline-flex items-center justify-center p-2 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 focus:outline-none focus:ring-2 focus:ring-[#E53935] transition-colors"
+                        aria-controls="mobileMenu"
+                        aria-expanded="false">
+                    <span class="sr-only">Toggle menu</span>
+                    <!-- Hamburger -->
+                    <svg id="hamburgerIcon" class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                    </svg>
+                    <!-- Close (X) -->
+                    <svg id="closeIcon" class="h-6 w-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== MOBILE MENU ========== -->
+    <div id="mobileMenu" class="hidden lg:hidden border-t border-white/5 bg-[#1E1E1E]">
+        <div class="px-3 pt-2 pb-4 space-y-1 max-h-[70vh] overflow-y-auto">
+
+            <!-- Nav Links -->
+            <a href="{% url 'notices' %}"
+               class="block px-3 py-2.5 rounded-lg text-sm font-medium text-gray-300 hover:text-white hover:bg-white/5 transition-colors
+                      {% if request.resolver_match.url_name == 'notices' %} !text-white bg-white/10 {% endif %}">
+                Notices
+            </a>
+            <a href="{% url 'membership' %}"
+               class="block px-3 py-2.5 rounded-lg text-sm font-medium text-gray-300 hover:text-white hover:bg-white/5 transition-colors
+                      {% if request.resolver_match.url_name == 'membership' %} !text-white bg-white/10 {% endif %}">
+                Membership
+            </a>
+            <a href="{% url 'equipment' %}"
+               class="block px-3 py-2.5 rounded-lg text-sm font-medium text-gray-300 hover:text-white hover:bg-white/5 transition-colors
+                      {% if request.resolver_match.url_name == 'equipment' %} !text-white bg-white/10 {% endif %}">
+                Equipment Details
+            </a>
+            <a href="{% url 'trainers' %}"
+               class="block px-3 py-2.5 rounded-lg text-sm font-medium text-gray-300 hover:text-white hover:bg-white/5 transition-colors
+                      {% if request.resolver_match.url_name == 'trainers' %} !text-white bg-white/10 {% endif %}">
+                Trainers
+            </a>
+            <a href="{% url 'workout_plan' %}"
+               class="block px-3 py-2.5 rounded-lg text-sm font-medium text-gray-300 hover:text-white hover:bg-white/5 transition-colors
+                      {% if request.resolver_match.url_name == 'workout_plan' %} !text-white bg-white/10 {% endif %}">
+                Workout Plan
+            </a>
+            <a href="{% url 'feedback' %}"
+               class="block px-3 py-2.5 rounded-lg text-sm font-medium text-gray-300 hover:text-white hover:bg-white/5 transition-colors
+                      {% if request.resolver_match.url_name == 'feedback' %} !text-white bg-white/10 {% endif %}">
+                Feedback
+            </a>
+
+            {% if user.is_authenticated %}
+                <!-- Divider -->
+                <div class="border-t border-white/5 my-2"></div>
+
+                <!-- Profile link on mobile -->
+                <a href="{% url 'profile' %}"
+                   class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-gray-300 hover:text-white hover:bg-white/5 transition-colors">
+                    <div class="w-8 h-8 rounded-full bg-[#E53935]/20 flex items-center justify-center flex-shrink-0">
+                        <span class="text-[#E53935] font-semibold text-xs">
+                            {{ user.first_name|first|default:user.username|first|upper }}
+                        </span>
+                    </div>
+                    <div class="min-w-0">
+                        <p class="text-white font-medium truncate">{{ user.get_full_name|default:user.username }}</p>
+                        <p class="text-xs text-gray-400 truncate">View profile</p>
+                    </div>
+                </a>
+
+                <!-- Logout on mobile -->
+                <form method="post" action="{% url 'logout' %}" class="mt-1">
+                    {% csrf_token %}
+                    <button type="submit"
+                            class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-[#E53935] hover:bg-[#E53935]/10 transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                        </svg>
+                        Logout
+                    </button>
+                </form>
+            {% endif %}
+        </div>
+    </div>
+</nav>
+
+<!-- ==================== SCRIPTS ==================== -->
+<script>
+    // Profile Dropdown
+    function toggleProfileDropdown() {
+        const menu = document.getElementById('profileMenu');
+        const btn = document.getElementById('profileBtn');
+        const chevron = document.getElementById('profileChevron');
+        const isOpen = !menu.classList.contains('hidden');
+
+        if (isOpen) {
+            menu.classList.add('hidden');
+            btn.setAttribute('aria-expanded', 'false');
+            if (chevron) chevron.classList.remove('rotate-180');
+        } else {
+            menu.classList.remove('hidden');
+            btn.setAttribute('aria-expanded', 'true');
+            if (chevron) chevron.classList.add('rotate-180');
+        }
+    }
+
+    // Mobile Menu
+    function toggleMobileMenu() {
+        const menu = document.getElementById('mobileMenu');
+        const hamburger = document.getElementById('hamburgerIcon');
+        const close = document.getElementById('closeIcon');
+        const btn = document.getElementById('mobileMenuBtn');
+        const isOpen = !menu.classList.contains('hidden');
+
+        if (isOpen) {
+            menu.classList.add('hidden');
+            hamburger.classList.remove('hidden');
+            close.classList.add('hidden');
+            btn.setAttribute('aria-expanded', 'false');
+        } else {
+            menu.classList.remove('hidden');
+            hamburger.classList.add('hidden');
+            close.classList.remove('hidden');
+            btn.setAttribute('aria-expanded', 'true');
+        }
+    }
+
+    // Close profile dropdown when clicking outside
+    document.addEventListener('click', function (e) {
+        const dropdown = document.getElementById('profileDropdown');
+        const menu = document.getElementById('profileMenu');
+        const btn = document.getElementById('profileBtn');
+        const chevron = document.getElementById('profileChevron');
+
+        if (dropdown && menu && !dropdown.contains(e.target)) {
+            menu.classList.add('hidden');
+            if (btn) btn.setAttribute('aria-expanded', 'false');
+            if (chevron) chevron.classList.remove('rotate-180');
+        }
+    });
+
+    // Close mobile menu when a link is clicked
+    document.querySelectorAll('#mobileMenu a').forEach(function (link) {
+        link.addEventListener('click', function () {
+            const menu = document.getElementById('mobileMenu');
+            const hamburger = document.getElementById('hamburgerIcon');
+            const close = document.getElementById('closeIcon');
+            const btn = document.getElementById('mobileMenuBtn');
+
+            menu.classList.add('hidden');
+            hamburger.classList.remove('hidden');
+            close.classList.add('hidden');
+            if (btn) btn.setAttribute('aria-expanded', 'false');
+        });
+    });
+</script>

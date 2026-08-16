@@ -1,0 +1,76 @@
+/* Login Form*/
+body {
+            font-family: 'Inter', system-ui, sans-serif;
+        }
+        .font-display {
+            font-family: 'Poppins', system-ui, sans-serif;
+        }
+        /* Custom focus ring with primary red */
+        .focus-primary:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(229, 57, 53, 0.35);
+        }
+
+
+        /* Register*/
+    body {
+            font-family: 'Inter', system-ui, sans-serif;
+        }
+        .font-display {
+            font-family: 'Poppins', system-ui, sans-serif;
+        }
+        .input-field {
+            width: 100%;
+            background-color: #121212;
+            border: 1px solid #424242;
+            color: #ffffff;
+            border-radius: 0.75rem;
+            padding: 0.75rem 1rem;
+            font-size: 0.875rem;
+            transition: all 0.2s ease;
+        }
+        .input-field::placeholder {
+            color: #6b7280;
+        }
+        .input-field:hover {
+            border-color: #6b7280;
+        }
+        .input-field:focus {
+            outline: none;
+            border-color: #E53935;
+            box-shadow: 0 0 0 3px rgba(229, 57, 53, 0.25);
+        }
+        .input-field.error {
+            border-color: #E53935;
+            box-shadow: 0 0 0 3px rgba(229, 57, 53, 0.2);
+        }
+        .input-field.success {
+            border-color: #43A047;
+        }
+        .error-msg {
+            color: #f87171;
+            font-size: 0.75rem;
+            margin-top: 0.35rem;
+            display: none;
+        }
+        .error-msg.show {
+            display: block;
+        }
+        .label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #d1d5db;
+            margin-bottom: 0.4rem;
+        }
+        /* Hide default file input */
+        .file-input-hidden {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            padding: 0;
+            margin: -1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0);
+            border: 0;
+        }
