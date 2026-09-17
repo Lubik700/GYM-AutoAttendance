@@ -1,0 +1,48 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Admin | FitTrack{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: { extend: { colors: {
+                dark: { bg: '#121212', sidebar: '#1E1E1E', card: '#2A2A2A', secondary: '#424242' },
+                primary: '#E53935', success: '#43A047', warning: '#FB8C00',
+            }, fontFamily: { sans: ['Inter'], display: ['Poppins'] } } }
+        }
+    </script>
+</head>
+<body class="bg-dark-bg text-white flex min-h-screen">
+
+    <!-- Sidebar -->
+    <aside class="w-64 bg-dark-sidebar border-r border-white/5 flex flex-col">
+        <div class="p-6">
+            <h1 class="font-display text-xl font-bold text-white">FitTrack <span class="text-primary">Admin</span></h1>
+        </div>
+        <nav class="flex-1 px-3 space-y-1">
+            {% include 'admin/_nav_links.html' %}
+        </nav>
+        <div class="p-4 border-t border-white/5">
+            <a href="{% url 'logout' %}" class="text-sm text-gray-400 hover:text-primary">Logout</a>
+        </div>
+    </aside>
+
+    <!-- Main -->
+    <main class="flex-1 p-8 overflow-y-auto">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="mb-5 px-4 py-3 rounded-lg text-sm
+                    {% if message.tags == 'error' %}bg-red-500/15 text-red-400 border border-red-500/30
+                    {% else %}bg-success/15 text-green-400 border border-success/30{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+        {% block content %}{% endblock %}
+    </main>
+
+</body>
+</html>

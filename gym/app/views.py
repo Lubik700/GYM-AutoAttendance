@@ -1,5 +1,8 @@
 # views.py
 
+
+
+from .recommendation import get_recommendation, get_recommendation_by_type
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login
 from django.contrib import messages
@@ -10,8 +13,8 @@ from django.contrib.auth.models import User
 from django.contrib.auth import login, authenticate
 from django.contrib import messages
 from .forms import LoginForm, RegisterForm
-from .models import Profile
-
+from .models import Profile,MembershipPackage,Subscription
+from .decorators import staff_required
 
 from django.shortcuts import render, redirect
 from django.contrib.auth.models import User
@@ -25,11 +28,7 @@ from .forms import LoginForm
 from django.contrib.auth import logout
 from .models import Equipment
 from .models import Trainer
-
-
-@login_required
-def home(request):
-    return render(request, "app/home.html")
+from .utils import get_subscription_status
 
 
 from django.shortcuts import render, redirect
@@ -50,6 +49,20 @@ def login_view(request):
             if user_obj and user_obj.check_password(password):
                 if not user_obj.is_active:
                     form.add_error(None, "Your registration is pending approval. Please visit the gym for verification.")
+                # else:
+                #     status = get_subscription_status(user_obj)
+                #     if not status['has_sub']:
+                #        form.add_error(None, "You don't have an active membership yet. Please visit the gym to purchase a package.")
+                #     elif not status['is_active'] and status['days_expired'] > 2:
+                #         form.add_error(None, "Your membership expired more than 2 days ago. Please visit the gym to renew.")
+                #     else:
+                #          user_obj.backend = 'app.backends.EmailOrUsernameBackend'
+                #          login(request, user_obj)
+                #          request.session.set_expiry(60 * 60 * 24 * 30 if remember_me else 0)
+                #          next_url = request.POST.get('next') or request.GET.get('next') or 'home'
+                #          return redirect(next_url)
+
+
                 else:
                     user_obj.backend = 'app.backends.EmailOrUsernameBackend'
                     login(request, user_obj)
@@ -63,7 +76,49 @@ def login_view(request):
     next_url = request.GET.get('next', '')
     return render(request, 'app/login.html', {'form': form, 'next': next_url})
 
+from django.utils import timezone
+from .models import BMIRecord, WorkoutPlan, Notice
+from .utils import get_subscription_status  # your existing helper
 
+@login_required
+def home(request):
+    today_name = timezone.localdate().strftime('%A').lower()  # e.g. 'monday'
+
+    # Subscription status
+    sub_status = get_subscription_status(request.user)
+
+    # Latest BMI record + trend (compare latest vs previous)
+    bmi_records = BMIRecord.objects.filter(user=request.user).order_by('-recorded_at')[:2]
+    latest_bmi = bmi_records[0] if bmi_records else None
+    bmi_trend = None
+    if len(bmi_records) == 2:
+        diff = round(bmi_records[0].bmi - bmi_records[1].bmi, 1)
+        bmi_trend = diff  # negative = lost BMI, positive = gained
+
+    # Today's workout
+    plan = WorkoutPlan.objects.filter(user=request.user).first()
+    today_workout = None
+    if plan:
+        today_workout = plan.days.prefetch_related('exercises').filter(day=today_name).first()
+
+    # Workout plan completion stat (days filled vs 7)
+    days_planned = plan.days.count() if plan else 0
+
+    # Notices
+    important_notices = Notice.objects.filter(is_important=True)[:3]
+
+    context = {
+        'sub_status': sub_status,
+        'latest_bmi': latest_bmi,
+        'bmi_trend': bmi_trend,
+        'today_workout': today_workout,
+        'today_name': today_name,
+        'days_planned': days_planned,
+        'has_plan': plan is not None and days_planned > 0,
+        'important_notices': important_notices,
+        'member_since_days': (timezone.localdate() - request.user.date_joined.date()).days,
+    }
+    return render(request, 'app/home.html', context)
 
 def register_view(request):
     if request.method == 'POST':
@@ -106,7 +161,14 @@ def registration_success_view(request):
 
 @login_required
 def membership_view(request):
-    return render(request, "app/register.html")
+    packages = MembershipPackage.objects.filter(is_active=True)
+    status = get_subscription_status(request.user)
+    history = Subscription.objects.filter(user=request.user)
+    return render(request, 'app/membership.html', {
+        'packages': packages,
+        'sub_status': status,
+        'history': history,
+    })
 
 
 @login_required
@@ -144,13 +206,11 @@ DEFAULT_ROUTINE = {
 }
 
 
+
+
 @login_required
 def workout_plan_view(request):
     plan, _ = WorkoutPlan.objects.get_or_create(user=request.user)
-    days = plan.days.prefetch_related('exercises').order_by(
-        'id'
-    )
-    # keep consistent Sun-Sat order even if partially created
     day_order = [d[0] for d in DAY_CHOICES]
     days = sorted(plan.days.prefetch_related('exercises'), key=lambda d: day_order.index(d.day))
 
@@ -158,6 +218,8 @@ def workout_plan_view(request):
         'plan': plan,
         'days': days,
         'has_days': plan.days.exists(),
+        'DAY_CHOICES': DAY_CHOICES,
+        'days_present': [d.day for d in days],
     })
 
 
@@ -179,7 +241,7 @@ def suggest_workout_plan(request):
                 Exercise.objects.create(day=day_obj, name=name, sets=sets, reps=reps, order=i)
 
     messages.success(request, "Suggested workout plan added. Feel free to customize it.")
-    return redirect('app/workout_plan')
+    return redirect('workout_plan')
 
 
 @login_required
@@ -188,7 +250,7 @@ def add_workout_day(request, day_key):
     day_obj, created = WorkoutDay.objects.get_or_create(plan=plan, day=day_key)
     if not created:
         messages.info(request, f"{day_obj.get_day_display()} already exists in your plan.")
-    return redirect('app/workout_plan')
+    return redirect('workout_plan')
 
 
 @login_required
@@ -199,7 +261,7 @@ def edit_workout_day(request, day_id):
         if form.is_valid():
             form.save()
             messages.success(request, "Day updated.")
-            return redirect('app/workout_plan')
+            return redirect('workout_plan')
     else:
         form = WorkoutDayForm(instance=day_obj)
     return render(request, 'app/edit_day.html', {'form': form, 'day': day_obj})
@@ -210,7 +272,7 @@ def delete_workout_day(request, day_id):
     day_obj = get_object_or_404(WorkoutDay, id=day_id, plan__user=request.user)
     day_obj.delete()
     messages.success(request, "Day removed from your plan.")
-    return redirect('app/workout_plan')
+    return redirect('workout_plan')
 
 
 @login_required
@@ -224,23 +286,40 @@ def add_exercise(request, day_id):
             exercise.order = day_obj.exercises.count()
             exercise.save()
             messages.success(request, "Exercise added.")
-    return redirect('app/workout_plan')
+    return redirect('workout_plan')
 
 
 @login_required
 def delete_exercise(request, exercise_id):
     exercise = get_object_or_404(Exercise, id=exercise_id, day__plan__user=request.user)
     exercise.delete()
-    return redirect('app/workout_plan')
+    return redirect('workout_plan')
+
+from .models import Feedback
+from .forms import FeedbackForm
 
 @login_required
 def feedback_view(request):
-    pass
+    if request.method == 'POST':
+        form = FeedbackForm(request.POST)
+        if form.is_valid():
+            fb = form.save(commit=False)
+            fb.user = request.user
+            fb.save()
+            messages.success(request, "Thanks for your feedback!")
+            return redirect('feedback')
+    else:
+        form = FeedbackForm()
 
+    my_feedback = Feedback.objects.filter(user=request.user)
+    return render(request, 'app/feedback.html', {'form': form, 'my_feedback': my_feedback})
+
+from .models import Profile
 
 @login_required
 def profile_view(request):
-    pass
+    profile = get_object_or_404(Profile, user=request.user)
+    return render(request, 'app/profile.html', {'profile': profile})
 
 
 
@@ -252,7 +331,7 @@ def settings_view(request):
 @login_required
 def logout_view(request):
     logout(request)
-    return redirect('login')
+    return redirect('landing')
 
 # # views.py
 
@@ -266,3 +345,287 @@ def notices_view(request):
         'page_obj': page_obj,
     })
 
+
+from django.contrib.auth import update_session_auth_hash
+from django.contrib.auth.decorators import login_required
+from .forms import ProfileUpdateForm, CustomPasswordChangeForm
+
+@login_required
+def settings_view(request):
+    profile = get_object_or_404(Profile, user=request.user)
+
+    if request.method == 'POST':
+        if 'update_profile' in request.POST:
+            profile_form = ProfileUpdateForm(request.POST, request.FILES, instance=profile)
+            password_form = CustomPasswordChangeForm(request.user)
+            if profile_form.is_valid():
+                profile_form.save()
+                messages.success(request, "Profile updated successfully.")
+                return redirect('settings')
+
+        elif 'change_password' in request.POST:
+            profile_form = ProfileUpdateForm(instance=profile)
+            password_form = CustomPasswordChangeForm(request.user, request.POST)
+            if password_form.is_valid():
+                user = password_form.save()
+                update_session_auth_hash(request, user)  # keeps user logged in after password change
+                messages.success(request, "Password changed successfully.")
+                return redirect('settings')
+    else:
+        profile_form = ProfileUpdateForm(instance=profile)
+        password_form = CustomPasswordChangeForm(request.user)
+
+    return render(request, 'app/settings.html', {
+        'profile_form': profile_form,
+        'password_form': password_form,
+    })
+
+
+# views.py
+from django.contrib.auth import authenticate, login as auth_login
+
+def admin_login_view(request):
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        user = authenticate(request, username=username, password=password)
+        if user and user.is_staff:
+            auth_login(request, user)
+            return redirect('admin_dashboard')
+        messages.error(request, "Invalid credentials or not authorized.")
+    return render(request, 'admin/login.html')
+
+
+@staff_required
+def admin_dashboard(request):
+    context = {
+        'pending_count': User.objects.filter(is_active=False).count(),
+        'active_members': User.objects.filter(is_active=True, is_staff=False).count(),
+        'total_notices': Notice.objects.count(),
+    }
+    return render(request, 'admin/dashboard.html', context)
+
+
+@staff_required
+def admin_pending(request):
+    pending_users = User.objects.filter(is_active=False).select_related('profile')
+    return render(request, 'admin/pending.html', {'pending_users': pending_users})
+
+
+@staff_required
+def admin_approve_user(request, user_id):
+    user = get_object_or_404(User, id=user_id, is_active=False)
+    user.is_active = True
+    user.save()
+    messages.success(request, f"{user.username} has been approved.")
+    return redirect('admin_pending')
+
+
+@staff_required
+def admin_reject_user(request, user_id):
+    user = get_object_or_404(User, id=user_id, is_active=False)
+    user.delete()
+    messages.success(request, "Registration rejected and removed.")
+    return redirect('admin_pending')
+
+
+from .models import BMIRecord, WorkoutPlan, WorkoutDay, Exercise
+from .forms import BMIForm
+from .recommendation import get_recommendation
+
+@login_required
+def bmi_calculator_view(request):
+    recommendation = None
+    latest_record = BMIRecord.objects.filter(user=request.user).first()
+
+    if request.method == 'POST':
+        form = BMIForm(request.POST)
+        if form.is_valid():
+            record = form.save(commit=False)
+            record.user = request.user
+            record.save()
+            predicted_type = predict_workout_type(
+              age=record.age,
+              gender=request.user.profile.gender,   # stored as 'male'/'female', normalized inside predict_workout_type
+              bmi=record.bmi,
+              experience_level=record.experience_level,
+                )
+            recommendation = get_recommendation_by_type(predicted_type)
+            # recommendation = get_recommendation(record.bmi_category, record.goal)
+            request.session['pending_recommendation'] = recommendation
+            latest_record = record
+    else:
+        form = BMIForm()
+
+    return render(request, 'app/bmi_calculator.html', {
+        'form': form,
+        'latest_record': latest_record,
+        'recommendation': recommendation,
+        'history': BMIRecord.objects.filter(user=request.user)[1:6],  # past records excluding latest
+    })
+
+
+from .ml_utils import predict_workout_type
+
+# @login_required
+# def bmi_calculator_view(request):
+#     recommendation = None
+#     latest_record = BMIRecord.objects.filter(user=request.user).first()
+
+#     if request.method == 'POST':
+#         form = BMIForm(request.POST)
+#         if form.is_valid():
+#             record = form.save(commit=False)
+#             record.user = request.user
+#             record.save()
+
+#             predicted_type = predict_workout_type(
+#                 age=record.age,
+#                 gender=request.user.profile.get_gender_display(),  # must match 'Male'/'Female' from dataset
+#                 bmi=record.bmi,
+#                 experience_level=1  # or pull from a new form field, see note below
+#             )
+
+#             recommendation = get_recommendation_by_type(predicted_type)  # map predicted type to your routine dict
+#             request.session['pending_recommendation'] = recommendation
+#             latest_record = record
+#     else:
+#         form = BMIForm()
+
+#     return render(request, 'app/bmi_calculator.html', {
+#         'form': form,
+#         'latest_record': latest_record,
+#         'recommendation': recommendation,
+#     })
+
+@login_required
+def apply_recommended_plan(request):
+    recommendation = request.session.get('pending_recommendation')
+    if not recommendation:
+        messages.error(request, "No recommendation found. Please calculate your BMI first.")
+        return redirect('bmi_calculator')
+
+    plan, _ = WorkoutPlan.objects.get_or_create(user=request.user)
+
+    if plan.days.exists():
+        messages.warning(request, "You already have a workout plan. Clear it first to apply a new recommendation.")
+        return redirect('workout_plan')
+
+    for day_key, (focus, exercises) in recommendation['routine'].items():
+        is_rest = focus is None
+        day_obj = WorkoutDay.objects.create(plan=plan, day=day_key, focus=focus or '', is_rest_day=is_rest)
+        if exercises:
+            for i, (name, sets, reps) in enumerate(exercises):
+                Exercise.objects.create(day=day_obj, name=name, sets=sets, reps=reps, order=i)
+
+    messages.success(request, f"{recommendation['plan_name']} applied to your workout plan!")
+    return redirect('workout_plan')
+
+
+import hmac, hashlib, base64, uuid, json
+from datetime import timedelta
+from django.utils import timezone
+from django.shortcuts import get_object_or_404
+from .models import MembershipPackage, Subscription
+
+ESEWA_MERCHANT_CODE = "EPAYTEST"
+ESEWA_SECRET_KEY = "8gBm/:&EnhH.1/q"
+ESEWA_PAYMENT_URL = "https://rc-epay.esewa.com.np/api/epay/main/v2/form"
+
+def generate_esewa_signature(total_amount, transaction_uuid, product_code):
+    message = f"total_amount={total_amount},transaction_uuid={transaction_uuid},product_code={product_code}"
+    hmac_obj = hmac.new(ESEWA_SECRET_KEY.encode(), message.encode(), hashlib.sha256)
+    return base64.b64encode(hmac_obj.digest()).decode()
+
+
+@login_required
+def esewa_initiate(request, package_id):
+    package = get_object_or_404(MembershipPackage, id=package_id, is_active=True)
+    transaction_uuid = f"{request.user.id}-{uuid.uuid4().hex[:10]}"
+    amount = package.price
+
+    request.session['pending_package_id'] = package.id
+    request.session['pending_txn_uuid'] = transaction_uuid
+
+    signature = generate_esewa_signature(amount, transaction_uuid, ESEWA_MERCHANT_CODE)
+
+    context = {
+        'amount': amount,
+        'tax_amount': 0,
+        'total_amount': amount,
+        'transaction_uuid': transaction_uuid,
+        'product_code': ESEWA_MERCHANT_CODE,
+        'product_service_charge': 0,
+        'product_delivery_charge': 0,
+        'success_url': request.build_absolute_uri('/membership/esewa/success/'),
+        'failure_url': request.build_absolute_uri('/membership/esewa/failure/'),
+        'signed_field_names': 'total_amount,transaction_uuid,product_code',
+        'signature': signature,
+        'payment_url': ESEWA_PAYMENT_URL,
+    }
+    return render(request, 'app/esewa_redirect.html', context)
+
+
+@login_required
+def esewa_success(request):
+    package_id = request.session.pop('pending_package_id', None)
+    txn_uuid = request.session.pop('pending_txn_uuid', None)
+    encoded_data = request.GET.get('data')
+
+    if not (package_id and txn_uuid and encoded_data):
+        messages.error(request, "Payment verification failed. Please try again.")
+        return redirect('membership')
+
+    decoded = json.loads(base64.b64decode(encoded_data))
+
+    if decoded.get('status') != 'COMPLETE' or decoded.get('transaction_uuid') != txn_uuid:
+        messages.error(request, "Payment could not be verified.")
+        return redirect('membership')
+
+    package = get_object_or_404(MembershipPackage, id=package_id)
+    latest = Subscription.objects.filter(user=request.user).order_by('-end_date').first()
+    start = latest.end_date if (latest and latest.end_date >= timezone.localdate()) else timezone.localdate()
+
+    Subscription.objects.create(
+        user=request.user,
+        package=package,
+        start_date=start,
+        end_date=start + timedelta(days=package.duration_days),
+        amount_paid=package.price,
+        payment_method='esewa',
+        transaction_id=txn_uuid,
+    )
+    messages.success(request, "Payment successful! Your membership has been renewed.")
+    return redirect('membership')
+
+
+@login_required
+def esewa_failure(request):
+    messages.error(request, "Payment was cancelled or failed.")
+    return redirect('membership')
+
+
+def landing_view(request):
+    if request.user.is_authenticated:
+        return redirect('home')
+    return render(request, 'app/landing.html')
+
+
+import json
+from django.core.serializers.json import DjangoJSONEncoder
+
+@login_required
+def bmi_progress_view(request):
+    records = BMIRecord.objects.filter(user=request.user).order_by('recorded_at')
+
+    chart_data = {
+        'labels': [r.recorded_at.strftime('%d %b') for r in records],
+        'bmi_values': [r.bmi for r in records],
+        'weight_values': [r.weight_kg for r in records],
+    }
+
+    return render(request, 'app/bmi_progress.html', {
+        'records': records,
+        'chart_data': json.dumps(chart_data, cls=DjangoJSONEncoder),
+        'latest': records.last(),
+    })

@@ -4,18 +4,22 @@ from django.db import models
 # models.py
 from django.db import models
 from django.contrib.auth.models import User
-
+from django.core.validators import RegexValidator
 GENDER_CHOICES = (
     ('male', 'Male'),
     ('female', 'Female'),
     ('other', 'Other'),
+)
+phone_validator = RegexValidator(
+    regex=r'^(97|98)\d{8}$',
+    message="Phone number must start with 97 or 98 and be exactly 10 digits."
 )
 
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     profile_picture = models.ImageField(upload_to='profile_pics/', blank=True, null=True)
     name = models.CharField(max_length=150)
-    contact = models.CharField(max_length=15)
+    contact = models.CharField(max_length=10, validators=[phone_validator])
     address = models.TextField()
     date_of_birth = models.DateField()
     gender = models.CharField(max_length=10, choices=GENDER_CHOICES)
@@ -140,3 +144,133 @@ class Exercise(models.Model):
 
     def __str__(self):
         return self.name
+
+
+
+class Feedback(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='feedbacks')
+    subject = models.CharField(max_length=150)
+    message = models.TextField()
+    rating = models.PositiveSmallIntegerField(
+        choices=[(i, str(i)) for i in range(1, 6)],
+        default=5,
+        help_text="1 = Poor, 5 = Excellent"
+    )
+    submitted_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-submitted_at']
+
+    def __str__(self):
+        return f"{self.subject} - {self.user.username}"
+
+
+from django.utils import timezone
+from datetime import timedelta
+
+class MembershipPackage(models.Model):
+    name = models.CharField(max_length=100)
+    price = models.DecimalField(max_digits=8, decimal_places=2)
+    duration_days = models.PositiveIntegerField(help_text="e.g. 30 for monthly, 365 for yearly")
+    description = models.TextField(blank=True)
+    is_active = models.BooleanField(default=True, help_text="Uncheck to stop offering this package")
+
+    class Meta:
+        ordering = ['price']
+
+    def __str__(self):
+        return f"{self.name} - Rs. {self.price} ({self.duration_days} days)"
+
+
+class Subscription(models.Model):
+    PAYMENT_CHOICES = (
+        ('cash', 'Cash (In-Person)'),
+        ('esewa', 'eSewa'),
+    )
+
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='subscriptions')
+    package = models.ForeignKey(MembershipPackage, on_delete=models.PROTECT)
+    start_date = models.DateField(default=timezone.localdate)
+    end_date = models.DateField()
+    amount_paid = models.DecimalField(max_digits=8, decimal_places=2)
+    payment_method = models.CharField(max_length=10, choices=PAYMENT_CHOICES, default='cash')
+    transaction_id = models.CharField(max_length=100, blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-start_date']
+
+    def save(self, *args, **kwargs):
+        if not self.end_date:
+            self.end_date = self.start_date + timedelta(days=self.package.duration_days)
+        if not self.amount_paid:
+            self.amount_paid = self.package.price
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.package.name} ({self.start_date} to {self.end_date})"
+
+    @property
+    def is_active(self):
+        return self.end_date >= timezone.localdate()
+
+    @property
+    def days_left(self):
+        return (self.end_date - timezone.localdate()).days
+
+
+
+
+class BMIRecord(models.Model):
+    EXPERIENCE_CHOICES = (
+        (1, 'Beginner'),
+        (2, 'Intermediate'),
+        (3, 'Expert'),
+    )
+    ACTIVITY_CHOICES = (
+        ('sedentary', 'Sedentary (little/no exercise)'),
+        ('light', 'Lightly active (1-3 days/week)'),
+        ('moderate', 'Moderately active (3-5 days/week)'),
+        ('active', 'Very active (6-7 days/week)'),
+    )
+    GOAL_CHOICES = (
+        ('lose', 'Lose Weight'),
+        ('maintain', 'Maintain Weight'),
+        ('gain', 'Gain Muscle'),
+    )
+
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='bmi_records')
+    height_cm = models.FloatField(help_text="Height in centimeters")
+    weight_kg = models.FloatField(help_text="Weight in kilograms")
+    age = models.PositiveIntegerField()
+    activity_level = models.CharField(max_length=10, choices=ACTIVITY_CHOICES, default='moderate')
+    goal = models.CharField(max_length=10, choices=GOAL_CHOICES, default='maintain')
+    experience_level = models.PositiveSmallIntegerField(choices=EXPERIENCE_CHOICES, default=1)   # <-- belongs here
+    bmi = models.FloatField(editable=False)
+    bmi_category = models.CharField(max_length=20, editable=False)
+    recorded_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-recorded_at']
+
+    def calculate_bmi(self):
+        height_m = self.height_cm / 100
+        return round(self.weight_kg / (height_m ** 2), 1)
+
+    def get_category(self, bmi):
+        if bmi < 18.5:
+            return 'Underweight'
+        elif bmi < 25:
+            return 'Normal'
+        elif bmi < 30:
+            return 'Overweight'
+        else:
+            return 'Obese'
+
+    def save(self, *args, **kwargs):
+        self.bmi = self.calculate_bmi()
+        self.bmi_category = self.get_category(self.bmi)
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.user.username} - BMI {self.bmi} ({self.bmi_category})"

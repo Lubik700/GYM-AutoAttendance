@@ -5,64 +5,74 @@
 <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
 
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
-        <div>
-            <h1 class="font-display text-2xl sm:text-3xl font-bold text-white tracking-tight">My Workout Plan</h1>
-            <p class="text-gray-400 text-sm mt-1">Build your own routine or start from a suggestion</p>
-        </div>
-
-        {% if not has_days %}
-        <a href="{% url 'suggest_workout_plan' %}"
-           class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary hover:bg-primary-hover text-black text-sm font-medium transition-colors shadow-lg shadow-primary/20">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-            </svg>
-            Suggest a Plan for Me
-        </a>
-        {% endif %}
+    <div>
+        <h1 class="font-display text-2xl sm:text-3xl font-bold text-gray tracking-tight">My Workout Plan</h1>
+        <p class="text-black-400 text-sm mt-1">Build your own routine or start from a suggestion</p>
     </div>
 
     {% if not has_days %}
-        <div class="bg-dark-card border border-white/5 rounded-2xl p-12 text-center mb-6">
-            <h3 class="font-display text-lg font-semibold text-black mb-1">No workout plan yet</h3>
-            <p class="text-gray-400 text-sm max-w-sm mx-auto mb-4">
-                Add days manually below, or click "Suggest a Plan for Me" for a ready-made routine you can edit.
-            </p>
-        </div>
+    <div class="flex flex-wrap gap-2">
+        <a href="{% url 'bmi_calculator' %}"
+           class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary hover:bg-primary-hover text-gray-500 text-sm font-medium transition-colors shadow-lg shadow-primary/20 hover:text-black">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+            </svg>
+            Suggest a Plan through BMI
+        </a>
+      <button type="button" onclick="toggleBuildOwn()"
+        class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-primary hover:bg-primary-hover text-gray-500 text-sm font-medium transition-colors shadow-lg shadow-primary/20 hover:text-black">
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+    </svg>
+    Build Your Own Plan
+</button>
+    </div>
     {% endif %}
+</div>
+
+{% if not has_days %}
+    <div class="bg-dark-card border border-gray/5 rounded-2xl p-12 text-center mb-6">
+        <h3 class="font-display text-lg font-semibold text-gray mb-1">No workout plan yet</h3>
+        <p class="text-black-400 text-sm max-w-sm mx-auto mb-4">
+            Click "Suggest a Plan for Me" for a ready-made routine, or pick your own days below to start from scratch.
+        </p>
+    </div>
+{% endif %}
+
 
     <!-- Days Grid -->
     <div class="space-y-4">
         {% for day in days %}
-        <div class="bg-dark-card border border-white/5 rounded-2xl p-5">
+        <div class="bg-dark-card border border-gray/5 rounded-2xl p-5">
             <div class="flex items-center justify-between mb-3">
                 <div>
-                    <h3 class="font-display text-lg font-semibold text-white">{{ day.get_day_display }}</h3>
-                    {% if day.focus %}<p class="text-xs text-gray-500">{{ day.focus }}</p>{% endif %}
+                    <h3 class="font-display text-lg font-semibold text-gray">{{ day.get_day_display }}</h3>
+                    {% if day.focus %}<p class="text-xs text-black-500">{{ day.focus }}</p>{% endif %}
                 </div>
                 <div class="flex items-center gap-2">
-                    <a href="{% url 'edit_workout_day' day.id %}" class="text-xs text-gray-400 hover:text-primary">Edit</a>
+                    <a href="{% url 'edit_workout_day' day.id %}" class="text-xs text-black-400 hover:text-primary">Edit</a>
                     <a href="{% url 'delete_workout_day' day.id %}" class="text-xs text-red-400 hover:text-red-300"
                        onclick="return confirm('Remove this day from your plan?');">Delete</a>
                 </div>
             </div>
 
             {% if day.is_rest_day %}
-                <p class="text-sm text-gray-500 italic">Rest day</p>
+                <p class="text-sm text-black-500 italic">Rest day</p>
             {% else %}
                 <div class="space-y-2 mb-3">
                     {% for ex in day.exercises.all %}
                     <div class="flex items-center justify-between bg-dark-bg rounded-xl px-4 py-2.5">
                         <div>
-                            <span class="text-sm text-white">{{ ex.name }}</span>
-                            <span class="text-xs text-gray-500 ml-2">
+                            <span class="text-sm text-gray">{{ ex.name }}</span>
+                            <span class="text-xs text-black-500 ml-2">
                                 {% if ex.sets %}{{ ex.sets }} sets{% endif %}{% if ex.reps %} × {{ ex.reps }}{% endif %}
                             </span>
-                            {% if ex.notes %}<p class="text-xs text-gray-600">{{ ex.notes }}</p>{% endif %}
+                            {% if ex.notes %}<p class="text-xs text-black-600">{{ ex.notes }}</p>{% endif %}
                         </div>
                         <a href="{% url 'delete_exercise' ex.id %}" class="text-xs text-red-400 hover:text-red-300">Remove</a>
                     </div>
                     {% empty %}
-                    <p class="text-sm text-gray-500">No exercises added yet.</p>
+                    <p class="text-sm text-black-500">No exercises added yet.</p>
                     {% endfor %}
                 </div>
 
@@ -87,7 +97,7 @@
         {% for key, label in DAY_CHOICES %}
             {% if key not in days_present %}
                 <a href="{% url 'add_workout_day' key %}"
-                   class="text-xs px-3 py-1.5 rounded-lg bg-dark-card border border-white/10 text-gray-300 hover:border-primary/40 hover:text-black transition-colors">
+                   class="text-xs px-3 py-1.5 rounded-lg bg-dark-card border border-gray/10 text-black-300 hover:border-primary/40 hover:text-black transition-colors">
                     + {{ label }}
                 </a>
             {% endif %}
@@ -95,4 +105,48 @@
     </div>
     {% endif %}
 </div>
-{% endblock %}
+
+<!-- Add days (always available, whether starting fresh or extending an existing plan) -->
+<!-- <div id="build-own" class="mt-6">
+    {% if days_present|length < 7 %}
+    <p class="text-xs text-black-500 mb-2">
+        {% if has_days %}Add another day:{% else %}Choose your days:{% endif %}
+    </p>
+    <div class="flex flex-wrap gap-2">
+        {% for key, label in DAY_CHOICES %}
+            {% if key not in days_present %}
+                <a href="{% url 'add_workout_day' key %}"
+                   class="text-xs px-3 py-1.5 rounded-lg bg-dark-card border border-gray/10 text-black-300 hover:border-primary/40 hover:text-gray transition-colors">
+                    + {{ label }}
+                </a>
+            {% endif %}
+        {% endfor %}
+    </div>
+    {% endif %}
+</div> -->
+
+
+<div id="build-own" class="mt-6 hidden">
+    {% if days_present|length < 7 %}
+    <p class="text-xs text-black mb-2">
+        {% if has_days %}Add another day:{% else %}Choose your days:{% endif %}
+    </p>
+    <div class="flex flex-wrap gap-2">
+        {% for key, label in DAY_CHOICES %}
+            {% if key not in days_present %}
+                <a href="{% url 'add_workout_day' key %}"
+                   class="text-xs px-3 py-1.5 rounded-lg bg-dark-card border border-gray/10 text-gray-500 hover:border-primary/40 hover:text-black transition-colors">
+                    + {{ label }}
+                </a>
+            {% endif %}
+        {% endfor %}
+    </div>
+    {% endif %}
+</div>
+
+<script>
+    function toggleBuildOwn() {
+        document.getElementById('build-own').classList.toggle('hidden');
+    }
+</script>
+{% endblock %}  

@@ -108,3 +108,37 @@ class TrainerAdmin(admin.ModelAdmin):
     list_filter = ('specialization', 'is_active')
     search_fields = ('name', 'bio', 'certifications')
     ordering = ('name',)
+
+from .models import Feedback
+
+@admin.register(Feedback)
+class FeedbackAdmin(admin.ModelAdmin):
+    list_display = ('subject', 'user', 'rating', 'submitted_at')
+    list_filter = ('rating', 'submitted_at')
+    search_fields = ('subject', 'message', 'user__username', 'user__email')
+    readonly_fields = ('user', 'subject', 'message', 'rating', 'submitted_at')
+
+    def has_add_permission(self, request):
+        return False  # admin shouldn't create fake feedback
+
+
+
+
+from .models import MembershipPackage, Subscription
+
+@admin.register(MembershipPackage)
+class MembershipPackageAdmin(admin.ModelAdmin):
+    list_display = ('name', 'price', 'duration_days', 'is_active')
+    list_filter = ('is_active',)
+
+
+@admin.register(Subscription)
+class SubscriptionAdmin(admin.ModelAdmin):
+    list_display = ('user', 'package', 'start_date', 'end_date', 'payment_method', 'is_active')
+    list_filter = ('payment_method', 'package')
+    search_fields = ('user__username', 'user__email')
+    autocomplete_fields = ['user']
+
+    def is_active(self, obj):
+        return obj.is_active
+    is_active.boolean = True

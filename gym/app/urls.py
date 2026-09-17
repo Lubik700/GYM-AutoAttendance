@@ -16,10 +16,11 @@ urlpatterns = [
     ),
    path('register/', views.register_view, name='register'),
 path('register/success/', views.registration_success_view, name='registration_success'),
-path('', views.login_view, name='login'),
-    path('notices/', views.notices_view, name='notices'),
+path('', views.landing_view, name='landing'),
+path('login/', views.login_view, name='login'),
+path('notices/', views.notices_view, name='notices'),
 path('membership/', views.membership_view, name='membership'),
-path('equipment/', views.equipment_view, name='equipment'),
+# path('equipment/', views.equipment_view, name='equipment'),
 path('trainers/', views.trainers_view, name='trainers'),
 path('feedback/', views.feedback_view, name='feedback'),
 path('profile/', views.profile_view, name='profile'),
@@ -35,8 +36,22 @@ path('workout-plan/day/<int:day_id>/delete/', views.delete_workout_day, name='de
 path('workout-plan/day/<int:day_id>/exercise/add/', views.add_exercise, name='add_exercise'),
 path('workout-plan/exercise/<int:exercise_id>/delete/', views.delete_exercise, name='delete_exercise'),
 
+path('membership/esewa/initiate/<int:package_id>/', views.esewa_initiate, name='esewa_initiate'),
+path('membership/esewa/success/', views.esewa_success, name='esewa_success'),
+path('membership/esewa/failure/', views.esewa_failure, name='esewa_failure'),
+
+path('management/login/', views.admin_login_view, name='admin_login'),
+path('management/', views.admin_dashboard, name='admin_dashboard'),
+
+path('management/pending/', views.admin_pending, name='admin_pending'),
+path('management/pending/<int:user_id>/approve/', views.admin_approve_user, name='admin_approve_user'),
+path('management/pending/<int:user_id>/reject/', views.admin_reject_user, name='admin_reject_user'),
 
 
+
+path('bmi-calculator/', views.bmi_calculator_view, name='bmi_calculator'),
+path('bmi-calculator/apply/', views.apply_recommended_plan, name='apply_recommended_plan'),
+path('bmi-progress/', views.bmi_progress_view, name='bmi_progress'),
 ]
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

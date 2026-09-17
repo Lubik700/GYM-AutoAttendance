@@ -213,7 +213,7 @@
                                {% if form.contact.errors %}
                                <p class="error-msg show">{{ form.contact.errors.0 }}</p>
                                {% endif %}
-                               <p class="error-msg" id="error_contact">Enter a valid 10-digit contact number.</p> 
+                               <p class="error-msg" id="error_contact">Enter a valid 10-digit number starting with 97 or 98.</p> 
                     
                         </div>
                 </div>
@@ -468,8 +468,8 @@
                 return trimmed.length >= 2 && /^[a-zA-Z\s.'-]+$/.test(trimmed);
             },
             contact: (val) => {
-                const cleaned = val.replace(/[\s\-()]/g, '');
-                return /^[0-9]{10}$/.test(cleaned);
+             const cleaned = val.replace(/[\s\-()]/g, '');
+             return /^(97|98)\d{8}$/.test(cleaned);
             },
             address: (val) => val.trim().length >= 5,
             dob: (val) => {

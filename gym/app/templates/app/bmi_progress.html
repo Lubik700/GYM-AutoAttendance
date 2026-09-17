@@ -1,0 +1,134 @@
+{% extends 'app/base.html' %}
+{% block title %}My Progress | FitTrack{% endblock %}
+
+{% block content %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
+
+    <div class="mb-8">
+        <h1 class="font-display text-2xl sm:text-3xl font-bold text-black tracking-tight">My Progress</h1>
+        <p class="text-black-400 text-sm mt-1">Track your BMI and weight changes over time</p>
+    </div>
+
+    {% if records %}
+        <!-- Current stats -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-8">
+            <div class="bg-dark-card border border-white/5 rounded-2xl p-5 text-center">
+                <p class="text-xs text-black-500 mb-1">Current BMI</p>
+                <p class="text-2xl font-display font-bold text-primary">{{ latest.bmi }}</p>
+                <p class="text-xs text-black-400 mt-1">{{ latest.bmi_category }}</p>
+            </div>
+            <div class="bg-dark-card border border-white/5 rounded-2xl p-5 text-center">
+                <p class="text-xs text-black-500 mb-1">Current Weight</p>
+                <p class="text-2xl font-display font-bold text-black">{{ latest.weight_kg }}</p>
+                <p class="text-xs text-black-400 mt-1">kg</p>
+            </div>
+            <div class="bg-dark-card border border-white/5 rounded-2xl p-5 text-center col-span-2 sm:col-span-1">
+                <p class="text-xs text-black-500 mb-1">Records Logged</p>
+                <p class="text-2xl font-display font-bold text-black">{{ records.count }}</p>
+            </div>
+        </div>
+
+        <!-- Chart -->
+        <div class="bg-dark-card border border-white/5 rounded-2xl p-6 mb-8">
+            <h3 class="font-display text-lg font-semibold text-black mb-4">BMI Trend</h3>
+            <canvas id="bmiChart" height="90"></canvas>
+        </div>
+
+        <div class="bg-dark-card border border-white/5 rounded-2xl p-6 mb-8">
+            <h3 class="font-display text-lg font-semibold text-black mb-4">Weight Trend</h3>
+            <canvas id="weightChart" height="90"></canvas>
+        </div>
+
+        <!-- History table -->
+        <div class="bg-dark-card border border-white/5 rounded-2xl overflow-hidden">
+            <table class="w-full text-sm">
+                <thead class="bg-dark-bg text-black-400 text-xs uppercase">
+                    <tr>
+                        <th class="text-left px-5 py-3">Date</th>
+                        <th class="text-left px-5 py-3">BMI</th>
+                        <th class="text-left px-5 py-3">Category</th>
+                        <th class="text-left px-5 py-3">Weight (kg)</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-white/5">
+                    {% for record in records reversed %}
+                    <tr>
+                        <td class="px-5 py-3 text-black-300">{{ record.recorded_at|date:"d M Y" }}</td>
+                        <td class="px-5 py-3 text-black">{{ record.bmi }}</td>
+                        <td class="px-5 py-3 text-black-400">{{ record.bmi_category }}</td>
+                        <td class="px-5 py-3 text-black-400">{{ record.weight_kg }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+    {% else %}
+        <div class="bg-dark-card border border-white/5 rounded-2xl p-12 text-center">
+            <h3 class="font-display text-lg font-semibold text-black mb-1">No records yet</h3>
+            <p class="text-black-400 text-sm max-w-sm mx-auto mb-4">
+                Use the BMI Calculator to log your first entry and start tracking your progress.
+            </p>
+            <a href="{% url 'bmi_calculator' %}"
+               class="inline-block bg-primary hover:bg-primary-hover text-black text-sm font-medium px-5 py-2.5 rounded-xl transition-colors">
+                Calculate My BMI
+            </a>
+        </div>
+    {% endif %}
+
+</div>
+
+{% if records %}
+<script>
+    const chartData = {{ chart_data|safe }};
+
+    new Chart(document.getElementById('bmiChart'), {
+        type: 'line',
+        data: {
+            labels: chartData.labels,
+            datasets: [{
+                label: 'BMI',
+                data: chartData.bmi_values,
+                borderColor: '#E53935',
+                backgroundColor: 'rgba(229, 57, 53, 0.1)',
+                tension: 0.3,
+                fill: true,
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { labels: { color: '#9CA3AF' } } },
+            scales: {
+                x: { ticks: { color: '#9CA3AF' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                y: { ticks: { color: '#9CA3AF' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+            }
+        }
+    });
+
+    new Chart(document.getElementById('weightChart'), {
+        type: 'line',
+        data: {
+            labels: chartData.labels,
+            datasets: [{
+                label: 'Weight (kg)',
+                data: chartData.weight_values,
+                borderColor: '#43A047',
+                backgroundColor: 'rgba(67, 160, 71, 0.1)',
+                tension: 0.3,
+                fill: true,
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { labels: { color: '#9CA3AF' } } },
+            scales: {
+                x: { ticks: { color: '#9CA3AF' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                y: { ticks: { color: '#9CA3AF' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+            }
+        }
+    });
+</script>
+{% endif %}
+{% endblock %}

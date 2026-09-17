@@ -1,0 +1,71 @@
+{% extends 'app/base.html' %}
+{% block title %}BMI Calculator | FitTrack{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
+
+    <div class="mb-8">
+        <h1 class="font-display text-2xl sm:text-3xl font-bold text-black tracking-tight">BMI Calculator</h1>
+        <p class="text-black-400 text-sm mt-1">Get a workout plan recommendation based on your BMI and goal</p>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="mb-5 px-4 py-3 rounded-lg text-sm bg-success/15 text-green-400 border border-success/30">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="bg-dark-card border border-white/5 rounded-2xl p-6 sm:p-8 mb-6">
+        <form method="post" class="space-y-5">
+            {% csrf_token %}
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-black-300 mb-1.5">Height (cm)</label>
+                    {{ form.height_cm }}
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-black-300 mb-1.5">Weight (kg)</label>
+                    {{ form.weight_kg }}
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium text-black-300 mb-1.5">Age</label>
+                    {{ form.age }}
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-black-300 mb-1.5">Activity Level</label>
+                    {{ form.activity_level }}
+                </div>
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-black-300 mb-1.5">Goal</label>
+                {{ form.goal }}
+            </div>
+            <button type="submit" class="w-full bg-primary hover:bg-primary-hover text-black font-semibold py-3 rounded-xl transition-colors">
+                Calculate BMI
+            </button>
+        </form>
+    </div>
+
+    {% if latest_record %}
+    <div class="bg-dark-card border border-white/5 rounded-2xl p-6 mb-6 text-center">
+        <p class="text-black-400 text-sm">Your BMI</p>
+        <p class="text-4xl font-display font-bold text-primary mt-1">{{ latest_record.bmi }}</p>
+        <p class="text-sm text-black-300 mt-1">{{ latest_record.bmi_category }}</p>
+    </div>
+    {% endif %}
+
+    {% if recommendation %}
+    <div class="bg-dark-card border border-primary/30 rounded-2xl p-6">
+        <h3 class="font-display text-lg font-semibold text-black mb-1">{{ recommendation.plan_name }}</h3>
+        <p class="text-black-400 text-sm mb-4">{{ recommendation.description }}</p>
+        <a href="{% url 'apply_recommended_plan' %}"
+           class="inline-block bg-primary hover:bg-primary-hover text-black text-sm font-medium px-5 py-2.5 rounded-xl transition-colors">
+            Apply This Plan to My Workout
+        </a>
+    </div>
+    {% endif %}
+
+</div>
+{% endblock %}

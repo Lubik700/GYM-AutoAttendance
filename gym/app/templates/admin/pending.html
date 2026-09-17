@@ -1,0 +1,25 @@
+{% extends 'admin/base.html' %}
+{% block content %}
+<h1 class="font-display text-2xl font-bold mb-6">Pending Registrations</h1>
+
+<div class="space-y-3">
+    {% for user in pending_users %}
+    <div class="bg-dark-card border border-white/5 rounded-2xl p-5 flex items-center justify-between">
+        <div>
+            <p class="text-white font-medium">{{ user.profile.name|default:user.username }}</p>
+            <p class="text-xs text-gray-500">{{ user.email }} · {{ user.profile.contact }}</p>
+            <p class="text-xs text-gray-600 mt-1">Registered {{ user.date_joined|date:"d M Y" }}</p>
+        </div>
+        <div class="flex gap-2">
+            <a href="{% url 'admin_approve_user' user.id %}"
+               class="text-xs bg-success/15 text-green-400 border border-success/30 px-4 py-2 rounded-xl hover:bg-success/25">Approve</a>
+            <a href="{% url 'admin_reject_user' user.id %}"
+               onclick="return confirm('Reject and delete this registration?');"
+               class="text-xs bg-red-500/15 text-red-400 border border-red-500/30 px-4 py-2 rounded-xl hover:bg-red-500/25">Reject</a>
+        </div>
+    </div>
+    {% empty %}
+    <p class="text-gray-500 text-sm">No pending registrations.</p>
+    {% endfor %}
+</div>
+{% endblock %}

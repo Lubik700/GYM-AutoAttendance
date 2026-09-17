@@ -1,22 +1,162 @@
-{% extends "app/base.html" %}
-
-{% block title %}Home{% endblock %}
+{% extends 'app/base.html' %}
+{% block title %}Home | FitTrack{% endblock %}
 
 {% block content %}
-<script src="https://cdn.tailwindcss.com"></script>
-<div class="min-h-screen flex items-center justify-center bg-gray-100">
-    <div class="bg-white p-8 rounded-xl shadow-lg">
-        <h1 class="text-4xl font-bold text-blue-600">
-            Hello Django + Tailwind!
+<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
+
+    <div class="mb-6">
+        <h1 class="font-display text-2xl sm:text-3xl font-bold text-black tracking-tight">
+            Welcome back, {{ request.user.profile.name|default:request.user.username }}
         </h1>
-
-        <p class="mt-4 text-gray-600">
-            Tailwind is working!
-        </p>
-
-        <button class="mt-6 bg-green-500 hover:bg-green-600 text-white px-6 py-2 rounded-lg">
-            Join Now
-        </button>
+        <p class="text-black-400 text-sm mt-1">Here's your fitness snapshot for today</p>
     </div>
+
+    <!-- Stat cards -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
+        <div class="bg-dark-card border border-gray/5 rounded-2xl p-4">
+            <p class="text-xs text-black-500 mb-1">Current BMI</p>
+            {% if latest_bmi %}
+                <p class="text-xl font-display font-bold text-primary">{{ latest_bmi.bmi }}</p>
+                <p class="text-[11px] text-black-500 mt-0.5">
+                    {{ latest_bmi.bmi_category }}
+                    {% if bmi_trend %}
+                        <span class="{% if bmi_trend < 0 %}text-green-400{% else %}text-orange-400{% endif %}">
+                            ({{ bmi_trend }})
+                        </span>
+                    {% endif %}
+                </p>
+            {% else %}
+                <p class="text-sm text-black-500">Not calculated</p>
+            {% endif %}
+        </div>
+
+        <div class="bg-dark-card border border-gray/5 rounded-2xl p-4">
+            <p class="text-xs text-black-500 mb-1">Membership</p>
+            {% if sub_status.has_sub %}
+                <p class="text-xl font-display font-bold {% if sub_status.days_left < 0 %}text-red-400{% elif sub_status.days_left <= 5 %}text-orange-400{% else %}text-black{% endif %}">
+                    {% if sub_status.days_left >= 0 %}{{ sub_status.days_left }}d{% else %}Expired{% endif %}
+                </p>
+                <p class="text-[11px] text-black-500 mt-0.5">{{ sub_status.latest.package.name }}</p>
+            {% else %}
+                <p class="text-sm text-black-500">No plan</p>
+            {% endif %}
+        </div>
+
+        <div class="bg-dark-card border border-gray/5 rounded-2xl p-4">
+            <p class="text-xs text-black-500 mb-1">Workout Plan</p>
+            <p class="text-xl font-display font-bold text-black">{{ days_planned }}/7</p>
+            <p class="text-[11px] text-black-500 mt-0.5">days planned</p>
+        </div>
+
+        <div class="bg-dark-card border border-gray/5 rounded-2xl p-4">
+            <p class="text-xs text-black-500 mb-1">Member Since</p>
+            <p class="text-xl font-display font-bold text-black">{{ member_since_days }}</p>
+            <p class="text-[11px] text-black-500 mt-0.5">days</p>
+        </div>
+    </div>
+
+    <!-- Subscription banner -->
+    {% if sub_status.has_sub %}
+        {% if sub_status.days_left < 0 %}
+            <div class="mb-6 px-5 py-4 rounded-2xl bg-red-500/15 border border-red-500/30 flex items-center justify-between flex-wrap gap-3">
+                <div>
+                    <p class="text-red-400 font-semibold text-sm">Membership Expired</p>
+                    <p class="text-red-300/80 text-xs mt-0.5">Expired {{ sub_status.days_expired }} day{{ sub_status.days_expired|pluralize }} ago.</p>
+                </div>
+                <a href="{% url 'membership' %}" class="text-xs bg-red-500 hover:bg-red-600 text-black font-medium px-4 py-2 rounded-xl transition-colors">Renew Now</a>
+            </div>
+        {% elif sub_status.days_left <= 5 %}
+            <div class="mb-6 px-5 py-4 rounded-2xl bg-warning/15 border border-warning/30 flex items-center justify-between flex-wrap gap-3">
+                <div>
+                    <p class="text-orange-400 font-semibold text-sm">Membership Expiring Soon</p>
+                    <p class="text-orange-300/80 text-xs mt-0.5">{{ sub_status.days_left }} day{{ sub_status.days_left|pluralize }} left.</p>
+                </div>
+                <a href="{% url 'membership' %}" class="text-xs bg-primary hover:bg-primary-hover text-black font-medium px-4 py-2 rounded-xl transition-colors">Renew</a>
+            </div>
+        {% endif %}
+    {% else %}
+        <div class="mb-6 px-5 py-4 rounded-2xl bg-primary/15 border border-primary/30">
+            <p class="text-primary font-semibold text-sm">No Active Membership</p>
+            <p class="text-red-100/70 text-xs mt-0.5">Visit the gym to purchase a membership package.</p>
+        </div>
+    {% endif %}
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+
+        <!-- Today's workout -->
+        <div class="bg-dark-card border border-gray/5 rounded-2xl p-6">
+            <h2 class="font-display text-lg font-semibold text-black mb-4">Today's Workout — {{ today_name|title }}</h2>
+            {% if today_workout %}
+                {% if today_workout.is_rest_day %}
+                    <p class="text-sm text-black-500 italic">Rest day. Recovery is part of progress too.</p>
+                {% else %}
+                    {% if today_workout.focus %}<p class="text-xs text-black-500 mb-3">{{ today_workout.focus }}</p>{% endif %}
+                    <div class="space-y-2">
+                        {% for ex in today_workout.exercises.all %}
+                        <div class="flex items-center justify-between bg-dark-bg rounded-xl px-4 py-2.5">
+                            <span class="text-sm text-black">{{ ex.name }}</span>
+                            <span class="text-xs text-black-500">
+                                {% if ex.sets %}{{ ex.sets }} sets{% endif %}{% if ex.reps %} × {{ ex.reps }}{% endif %}
+                            </span>
+                        </div>
+                        {% empty %}
+                        <p class="text-sm text-black-500">No exercises added for today yet.</p>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                <a href="{% url 'workout_plan' %}" class="inline-block mt-4 text-xs text-primary hover:text-red-400">Manage full plan →</a>
+            {% elif has_plan %}
+                <p class="text-sm text-black-500">No workout scheduled for today.</p>
+                <a href="{% url 'workout_plan' %}" class="inline-block mt-3 text-xs text-primary hover:text-red-400">Add a day →</a>
+            {% else %}
+                <p class="text-sm text-black-500 mb-4">You haven't created a workout plan yet.</p>
+                <div class="flex gap-2">
+                    <a href="{% url 'bmi_calculator' %}" class="text-xs bg-primary hover:bg-primary-hover text-black font-medium px-4 py-2 rounded-xl transition-colors">Get a Recommendation</a>
+                    <a href="{% url 'workout_plan' %}" class="text-xs bg-dark-bg border border-gray/10 text-black-300 hover:text-black font-medium px-4 py-2 rounded-xl transition-colors">Build My Own</a>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- BMI trend -->
+        <div class="bg-dark-card border border-gray/5 rounded-2xl p-6">
+            <h2 class="font-display text-lg font-semibold text-black mb-4">BMI Trend</h2>
+            {% if latest_bmi %}
+                <div class="text-center py-4">
+                    <p class="text-4xl font-display font-bold text-primary">{{ latest_bmi.bmi }}</p>
+                    <p class="text-sm text-black-400 mt-1">{{ latest_bmi.bmi_category }}</p>
+                    {% if bmi_trend %}
+                        <p class="text-xs mt-2 {% if bmi_trend < 0 %}text-green-400{% else %}text-orange-400{% endif %}">
+                            {% if bmi_trend < 0 %}↓{% else %}↑{% endif %} {{ bmi_trend }} since last check
+                        </p>
+                    {% endif %}
+                </div>
+                <a href="{% url 'bmi_progress' %}" class="inline-block text-xs text-primary hover:text-red-400">View full progress →</a>
+            {% else %}
+                <p class="text-sm text-black-500 mb-4">Log your first BMI entry to start tracking progress.</p>
+                <a href="{% url 'bmi_calculator' %}" class="inline-block text-xs bg-primary hover:bg-primary-hover text-black font-medium px-4 py-2 rounded-xl transition-colors">Calculate BMI</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Notices -->
+    {% if important_notices %}
+    <div class="mb-6">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="font-display text-lg font-semibold text-black">Important Notices</h2>
+            <a href="{% url 'notices' %}" class="text-xs text-black-400 hover:text-primary">View all →</a>
+        </div>
+        <div class="space-y-3">
+            {% for notice in important_notices %}
+            <div class="bg-dark-card border border-gray/5 rounded-xl p-4">
+                <h3 class="text-sm font-medium text-black">{{ notice.title }}</h3>
+                <p class="text-xs text-black-400 mt-1">{{ notice.description|truncatewords:20 }}</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+  
+
 </div>
 {% endblock %}

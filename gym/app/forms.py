@@ -1,8 +1,10 @@
 from django import forms
 from django.contrib.auth.models import User
-from .models import Profile
+from .models import Profile,BMIRecord
 from . import models
-
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError as DjangoValidationError
+import re
 class RegisterForm(forms.Form):
     profile_picture = forms.ImageField(
         required=False,
@@ -22,12 +24,11 @@ class RegisterForm(forms.Form):
         })
     )
     contact = forms.CharField(
-        max_length=15,
+        max_length=10,
         widget=forms.TextInput(attrs={
             'class': 'input-field',
             'placeholder': 'e.g. 98XXXXXXXX',
             'autocomplete': 'tel',
-            'id':"id_contact",
         })
     )
     address = forms.CharField(
@@ -84,6 +85,19 @@ class RegisterForm(forms.Form):
             raise forms.ValidationError("Email already registered.")
         return email
 
+    def clean_password(self):
+        password = self.cleaned_data.get('password')
+        try:
+            validate_password(password)
+        except DjangoValidationError as e:
+            raise forms.ValidationError(e.messages)
+        return password
+    def clean_contact(self):
+            contact = self.cleaned_data.get('contact', '').strip()
+            if not re.match(r'^(97|98)\d{8}$', contact):
+                raise forms.ValidationError("Enter a valid 10-digit number starting with 97 or 98.")
+            return contact
+    
     def clean(self):
         cleaned_data = super().clean()
         password = cleaned_data.get('password')
@@ -91,6 +105,8 @@ class RegisterForm(forms.Form):
         if password and confirm_password and password != confirm_password:
             self.add_error('confirm_password', "Passwords do not match.")
         return cleaned_data
+    
+  
 
 
 
@@ -147,4 +163,55 @@ class WorkoutDayForm(forms.ModelForm):
         fields = ['focus', 'is_rest_day']
         widgets = {
             'focus': forms.TextInput(attrs={'class': 'input-field', 'placeholder': 'e.g. Chest & Triceps'}),
+        }
+
+
+class FeedbackForm(forms.ModelForm):
+    class Meta:
+        model = models.Feedback
+        fields = ['subject', 'message', 'rating']
+        widgets = {
+            'subject': forms.TextInput(attrs={
+                'class': 'input-field',
+                'placeholder': 'What is this about?',
+            }),
+            'message': forms.Textarea(attrs={
+                'class': 'input-field resize-none',
+                'rows': 5,
+                'placeholder': 'Tell us what you think...',
+            }),
+            'rating': forms.Select(attrs={'class': 'input-field'}),
+        }
+
+
+from django.contrib.auth.forms import PasswordChangeForm as DjangoPasswordChangeForm
+
+class ProfileUpdateForm(forms.ModelForm):
+    class Meta:
+        model = Profile
+        fields = ['profile_picture', 'name', 'contact', 'address']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'input-field'}),
+            'contact': forms.TextInput(attrs={'class': 'input-field'}),
+            'address': forms.Textarea(attrs={'class': 'input-field resize-none', 'rows': 2}),
+        }
+
+
+class CustomPasswordChangeForm(DjangoPasswordChangeForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            field.widget.attrs.update({'class': 'input-field'})
+
+
+class BMIForm(forms.ModelForm):
+    class Meta:
+        model = BMIRecord
+        fields = ['height_cm', 'weight_kg', 'age', 'activity_level', 'goal']
+        widgets = {
+            'height_cm': forms.NumberInput(attrs={'class': 'input-field', 'placeholder': 'e.g. 170', 'step': '0.1'}),
+            'weight_kg': forms.NumberInput(attrs={'class': 'input-field', 'placeholder': 'e.g. 65', 'step': '0.1'}),
+            'age': forms.NumberInput(attrs={'class': 'input-field', 'placeholder': 'e.g. 25'}),
+            'activity_level': forms.Select(attrs={'class': 'input-field'}),
+            'goal': forms.Select(attrs={'class': 'input-field'}),
         }

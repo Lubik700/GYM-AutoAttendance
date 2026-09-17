@@ -1,0 +1,78 @@
+{% extends 'app/base.html' %}
+{% block title %}My Profile | FitTrack{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
+
+    <div class="mb-8">
+        <h1 class="font-display text-2xl sm:text-3xl font-bold text-black tracking-tight">My Profile</h1>
+        <p class="text-black-400 text-sm mt-1">Your account details</p>
+    </div>
+
+    <div class="bg-dark-card border border-gray/5 rounded-2xl p-6 sm:p-8">
+
+        <!-- Profile picture + name -->
+        <div class="flex items-center gap-5 mb-8 pb-6 border-b border-gray/5">
+            <div class="w-20 h-20 rounded-full bg-dark-bg border-2 border-dark-secondary flex items-center justify-center overflow-hidden flex-shrink-0">
+                {% if profile.profile_picture %}
+                    <img src="{{ profile.profile_picture.url }}" alt="{{ profile.name }}" class="w-full h-full object-cover">
+                {% else %}
+                    <svg class="w-10 h-10 text-black-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                              d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                    </svg>
+                {% endif %}
+            </div>
+            <div>
+                <h2 class="font-display text-xl font-semibold text-black">{{ profile.name }}</h2>
+                <p class="text-black-400 text-sm">{{ request.user.email }}</p>
+            </div>
+        </div>
+
+        <!-- Details grid -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-5">
+            <div>
+                <p class="text-xs text-black-500 mb-1">Username</p>
+                <p class="text-sm text-black">{{ request.user.username }}</p>
+            </div>
+            <div>
+                <p class="text-xs text-black-500 mb-1">Contact Number</p>
+                <p class="text-sm text-black">{{ profile.contact }}</p>
+            </div>
+            <div>
+                <p class="text-xs text-black-500 mb-1">Date of Birth</p>
+                <p class="text-sm text-black">{{ profile.date_of_birth|date:"d M Y" }}</p>
+            </div>
+            <div>
+                <p class="text-xs text-black-500 mb-1">Gender</p>
+                <p class="text-sm text-black">{{ profile.get_gender_display }}</p>
+            </div>
+            <div class="sm:col-span-2">
+                <p class="text-xs text-black-500 mb-1">Address</p>
+                <p class="text-sm text-black">{{ profile.address }}</p>
+            </div>
+            <div>
+                <p class="text-xs text-black-500 mb-1">Member Since</p>
+                <p class="text-sm text-black">{{ request.user.date_joined|date:"d M Y" }}</p>
+            </div>
+            <div>
+                <p class="text-xs text-black-500 mb-1">Account Status</p>
+                <p class="text-sm">
+                    {% if request.user.is_active %}
+                        <span class="text-green-400">Active</span>
+                    {% else %}
+                        <span class="text-red-400">Pending Approval</span>
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+
+        <div class="mt-8 pt-6 border-t border-gray/5">
+            <a href="{% url 'settings' %}"
+               class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-dark-bg border border-dark-secondary text-black-300 hover:text-black hover:border-gray-500 text-sm font-medium transition-colors">
+                Edit Profile
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

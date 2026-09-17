@@ -1,0 +1,8 @@
+{% url 'admin_dashboard' as dashboard_url %}
+{% url 'admin_pending' as pending_url %}
+{% url 'admin_notices' as notices_url %}
+
+<a href="{{ dashboard_url }}" class="block px-3 py-2.5 rounded-xl text-sm {% if request.path == dashboard_url %}bg-primary/15 text-primary{% else %}text-gray-300 hover:bg-white/5{% endif %}">Dashboard</a>
+<a href="{{ pending_url }}" class="block px-3 py-2.5 rounded-xl text-sm {% if request.path == pending_url %}bg-primary/15 text-primary{% else %}text-gray-300 hover:bg-white/5{% endif %}">Pending Registrations</a>
+<a href="{{ notices_url }}" class="block px-3 py-2.5 rounded-xl text-sm {% if request.path == notices_url %}bg-primary/15 text-primary{% else %}text-gray-300 hover:bg-white/5{% endif %}">Notices</a>
+<!-- Add Equipment, Trainers, Feedback, Membership, Subscriptions the same way as we build them -->

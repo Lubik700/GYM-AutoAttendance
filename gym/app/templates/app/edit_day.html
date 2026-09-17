@@ -1,0 +1,59 @@
+{% extends 'app/base.html' %}
+
+{% block title %}Edit {{ day.get_day_display }} | FitTrack{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto px-4 sm:px-6 lg:px-8 py-10">
+
+    <div class="mb-6">
+        <h1 class="font-display text-2xl font-bold text-black tracking-tight">
+            Edit {{ day.get_day_display }}
+        </h1>
+        <p class="text-black-400 text-sm mt-1">Update this day's focus or mark it as a rest day</p>
+    </div>
+
+    <div class="bg-dark-card border border-white/5 rounded-2xl p-6">
+
+        {% if form.non_field_errors %}
+            <div class="mb-4 px-4 py-3 rounded-lg text-sm bg-red-500/15 text-red-400 border border-red-500/30">
+                {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+            </div>
+        {% endif %}
+
+        <form method="post" class="space-y-5">
+            {% csrf_token %}
+
+            <div>
+                <label for="{{ form.focus.id_for_label }}" class="block text-sm font-medium text-black-300 mb-1.5">
+                    Focus <span class="text-black-500 font-normal">(optional)</span>
+                </label>
+                {{ form.focus }}
+                {% if form.focus.errors %}
+                    <p class="mt-1.5 text-xs text-red-400">{{ form.focus.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <div class="flex items-center gap-2.5">
+                {{ form.is_rest_day }}
+                <label for="{{ form.is_rest_day.id_for_label }}" class="text-sm text-black-300 cursor-pointer select-none">
+                    Mark as rest day
+                </label>
+            </div>
+            {% if form.is_rest_day.errors %}
+                <p class="text-xs text-red-400">{{ form.is_rest_day.errors.0 }}</p>
+            {% endif %}
+
+            <div class="flex gap-3 pt-2">
+                <button type="submit"
+                        class="flex-1 bg-primary hover:bg-primary-hover text-black font-semibold py-2.5 px-4 rounded-xl transition-colors">
+                    Save
+                </button>
+                <a href="{% url 'workout_plan' %}"
+                   class="flex-1 text-center bg-dark-bg border border-dark-secondary text-black-300 hover:text-black hover:border-gray-500 font-medium py-2.5 px-4 rounded-xl transition-colors">
+                    Cancel
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

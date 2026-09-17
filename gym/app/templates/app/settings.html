@@ -1,0 +1,92 @@
+{% extends 'app/base.html' %}
+{% block title %}Settings | FitTrack{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
+
+    <div class="mb-8">
+        <h1 class="font-display text-2xl sm:text-3xl font-bold text-black tracking-tight">Settings</h1>
+        <p class="text-black-400 text-sm mt-1">Manage your profile and account security</p>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="mb-5 px-4 py-3 rounded-lg text-sm bg-success/15 text-green-400 border border-success/30">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Update Profile -->
+    <div class="bg-dark-card border border-gray/5 rounded-2xl p-6 sm:p-8 mb-6">
+        <h2 class="font-display text-lg font-semibold text-black mb-5">Profile Details</h2>
+
+        <form method="post" enctype="multipart/form-data" class="space-y-5">
+            {% csrf_token %}
+            <input type="hidden" name="update_profile" value="1">
+
+            <div>
+                <label class="block text-sm font-medium text-black-300 mb-1.5">Profile Picture</label>
+                {{ profile_form.profile_picture }}
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-black-300 mb-1.5">Full Name</label>
+                {{ profile_form.name }}
+                {% if profile_form.name.errors %}<p class="mt-1.5 text-xs text-red-400">{{ profile_form.name.errors.0 }}</p>{% endif %}
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-black-300 mb-1.5">Contact Number</label>
+                {{ profile_form.contact }}
+                {% if profile_form.contact.errors %}<p class="mt-1.5 text-xs text-red-400">{{ profile_form.contact.errors.0 }}</p>{% endif %}
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-black-300 mb-1.5">Address</label>
+                {{ profile_form.address }}
+                {% if profile_form.address.errors %}<p class="mt-1.5 text-xs text-red-400">{{ profile_form.address.errors.0 }}</p>{% endif %}
+            </div>
+
+            <button type="submit"
+                    class="bg-black  text-white hover:text-red-400 font-semibold py-2.5 px-5 rounded-xl transition-colors border hover:border-red-500">
+                Save Changes
+            </button>
+        </form>
+    </div>
+
+    <!-- Change Password -->
+    <div class="bg-dark-card border border-gray/5 rounded-2xl p-6 sm:p-8">
+        <h2 class="font-display text-lg font-semibold text-black mb-5">Change Password</h2>
+
+        <form method="post" class="space-y-5">
+            {% csrf_token %}
+            <input type="hidden" name="change_password" value="1">
+
+            <div>
+                <label class="block text-sm font-medium text-black-300 mb-1.5">Current Password</label>
+                {{ password_form.old_password }}
+                {% if password_form.old_password.errors %}<p class="mt-1.5 text-xs text-red-400">{{ password_form.old_password.errors.0 }}</p>{% endif %}
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-black-300 mb-1.5">New Password</label>
+                {{ password_form.new_password1 }}
+                {% if password_form.new_password1.errors %}<p class="mt-1.5 text-xs text-red-400">{{ password_form.new_password1.errors.0 }}</p>{% endif %}
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-black-300 mb-1.5">Confirm New Password</label>
+                {{ password_form.new_password2 }}
+                {% if password_form.new_password2.errors %}<p class="mt-1.5 text-xs text-red-400">{{ password_form.new_password2.errors.0 }}</p>{% endif %}
+            </div>
+
+            <button type="submit"
+                    class="bg-black border border-dark-secondary text-white hover:text-red-400 hover:border-red-500 font-medium py-2.5 px-5 rounded-xl transition-colors">
+                Update Password
+            </button>
+        </form>
+    </div>
+
+</div>
+{% endblock %}

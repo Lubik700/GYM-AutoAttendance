@@ -31,11 +31,7 @@
                           {% if request.resolver_match.url_name == 'membership' %} !text-white bg-white/10 {% endif %}">
                     Membership
                 </a>
-                <a href="{% url 'equipment' %}"
-                   class="px-2.5 xl:px-3.5 py-2 rounded-lg text-sm font-medium text-gray-300 hover:text-white hover:bg-white/5 transition-all duration-200 whitespace-nowrap
-                          {% if request.resolver_match.url_name == 'equipment' %} !text-white bg-white/10 {% endif %}">
-                    Equipment
-                </a>
+                
                 <a href="{% url 'trainers' %}"
                    class="px-2.5 xl:px-3.5 py-2 rounded-lg text-sm font-medium text-gray-300 hover:text-white hover:bg-white/5 transition-all duration-200 whitespace-nowrap
                           {% if request.resolver_match.url_name == 'trainers' %} !text-white bg-white/10 {% endif %}">
@@ -215,11 +211,7 @@
                       {% if request.resolver_match.url_name == 'membership' %} !text-white bg-white/10 {% endif %}">
                 Membership
             </a>
-            <a href="{% url 'equipment' %}"
-               class="block px-3 py-2.5 rounded-lg text-sm font-medium text-gray-300 hover:text-white hover:bg-white/5 transition-colors
-                      {% if request.resolver_match.url_name == 'equipment' %} !text-white bg-white/10 {% endif %}">
-                Equipment Details
-            </a>
+           
             <a href="{% url 'trainers' %}"
                class="block px-3 py-2.5 rounded-lg text-sm font-medium text-gray-300 hover:text-white hover:bg-white/5 transition-colors
                       {% if request.resolver_match.url_name == 'trainers' %} !text-white bg-white/10 {% endif %}">
