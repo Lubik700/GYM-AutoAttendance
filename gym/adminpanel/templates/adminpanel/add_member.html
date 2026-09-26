@@ -1,0 +1,30 @@
+{% extends 'adminpanel/base.html' %}
+{% block content %}
+<h1 class="font-display text-2xl font-bold mb-6">Add New Member</h1>
+
+<div class="bg-dark-card border border-white/5 rounded-2xl p-6 max-w-xl">
+    {% if form.non_field_errors %}
+        <div class="mb-4 px-4 py-3 rounded-lg text-sm bg-red-500/15 text-red-400 border border-red-500/30">
+            {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+        </div>
+    {% endif %}
+    <form method="post" class="space-y-5">
+        {% csrf_token %}
+        {% for field in form %}
+        <div>
+            <label class="block text-sm font-medium text-gray-300 mb-1.5">{{ field.label }}</label>
+            {{ field }}
+            {% if field.errors %}<p class="mt-1.5 text-xs text-red-400">{{ field.errors.0 }}</p>{% endif %}
+        </div>
+        {% endfor %}
+        <div class="flex gap-3 pt-2">
+            <button type="submit" class="flex-1 bg-primary hover:bg-red-600 text-white font-semibold py-2.5 rounded-xl transition-colors">
+                Create Member
+            </button>
+            <a href="{% url 'admin_members' %}" class="flex-1 text-center bg-dark-bg border border-dark-secondary text-gray-300 hover:text-white py-2.5 rounded-xl transition-colors">
+                Cancel
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

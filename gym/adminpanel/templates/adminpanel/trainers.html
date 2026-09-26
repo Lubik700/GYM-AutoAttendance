@@ -1,0 +1,31 @@
+{% extends 'adminpanel/base.html' %}
+{% block content %}
+<div class="flex items-center justify-between mb-6 gap-4 flex-wrap">
+    <h1 class="font-display text-2xl font-bold">Trainers</h1>
+    <div class="flex items-center gap-3">
+        <form method="get" class="flex">
+            <input type="text" name="q" value="{{ query }}" placeholder="Search by name, specialization..."
+                   class="admin-input w-64 text-sm">
+        </form>
+        <a href="{% url 'admin_trainer_add' %}" class="bg-primary hover:bg-red-600 text-white text-sm font-medium px-4 py-2.5 rounded-xl transition-colors whitespace-nowrap">
+            + Add Trainer
+        </a>
+    </div>
+</div>
+<div class="space-y-3">
+    {% for trainer in trainers %}
+    <div class="bg-dark-card border border-white/5 rounded-2xl p-5 flex items-center justify-between">
+        <div>
+            <p class="text-white font-medium">{{ trainer.name }}</p>
+            <p class="text-xs text-gray-500">{{ trainer.get_specialization_display }} · {{ trainer.experience_years }} yrs</p>
+        </div>
+        <div class="flex gap-2">
+            <a href="{% url 'admin_trainer_edit' trainer.id %}" class="text-xs text-gray-300 hover:text-primary px-3 py-1.5">Edit</a>
+            <a href="{% url 'admin_trainer_delete' trainer.id %}" onclick="return confirm('Delete this trainer?');" class="text-xs text-red-400 hover:text-red-300 px-3 py-1.5">Delete</a>
+        </div>
+    </div>
+    {% empty %}
+    <p class="text-gray-500 text-sm">No trainers yet.</p>
+    {% endfor %}
+</div>
+{% endblock %}

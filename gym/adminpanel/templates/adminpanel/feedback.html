@@ -1,0 +1,18 @@
+{% extends 'adminpanel/base.html' %}
+{% block content %}
+<h1 class="font-display text-2xl font-bold mb-6">Feedback</h1>
+<div class="space-y-3">
+    {% for fb in feedbacks %}
+    <div class="bg-dark-card border border-white/5 rounded-2xl p-5">
+        <div class="flex items-center justify-between mb-1">
+            <p class="text-white font-medium">{{ fb.subject }}</p>
+            <span class="text-xs text-primary">{{ fb.rating }}/5</span>
+        </div>
+        <p class="text-xs text-gray-500 mb-2">{{ fb.user.username }} · {{ fb.submitted_at|date:"d M Y" }}</p>
+        <p class="text-sm text-gray-400">{{ fb.message }}</p>
+    </div>
+    {% empty %}
+    <p class="text-gray-500 text-sm">No feedback yet.</p>
+    {% endfor %}
+</div>
+{% endblock %}

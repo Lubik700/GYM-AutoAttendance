@@ -5,6 +5,7 @@ from . import models
 from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError as DjangoValidationError
 import re
+from .models import MembershipPackage
 class RegisterForm(forms.Form):
     profile_picture = forms.ImageField(
         required=False,
@@ -73,6 +74,11 @@ class RegisterForm(forms.Form):
             'autocomplete': 'new-password',
             'id':"id_confirm_password",
         })
+    )
+    package = forms.ModelChoiceField(
+        queryset=MembershipPackage.objects.filter(is_active=True),
+        empty_label="Select a membership package",
+        widget=forms.Select(attrs={'class': 'input-field'})
     )
     terms = forms.BooleanField(
         required=True,
@@ -215,3 +221,92 @@ class BMIForm(forms.ModelForm):
             'activity_level': forms.Select(attrs={'class': 'input-field'}),
             'goal': forms.Select(attrs={'class': 'input-field'}),
         }
+
+
+
+from .models import Notice
+
+class NoticeForm(forms.ModelForm):
+    class Meta:
+        model = Notice
+        fields = ['title', 'description', 'is_important']
+        widgets = {
+            'title': forms.TextInput(attrs={'class': 'admin-input'}),
+            'description': forms.Textarea(attrs={'class': 'admin-input', 'rows': 4}),
+        }
+
+
+
+from .models import Trainer, MembershipPackage
+from django import forms
+class TrainerForm(forms.ModelForm):
+    class Meta:
+        model = Trainer
+        fields = ['name', 'photo', 'specialization', 'experience_years', 'bio',
+                  'certifications', 'contact', 'email', 'available_days', 'is_active']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'admin-input'}),
+            'specialization': forms.Select(attrs={'class': 'admin-input'}),
+            'experience_years': forms.NumberInput(attrs={'class': 'admin-input'}),
+            'bio': forms.Textarea(attrs={'class': 'admin-input', 'rows': 3}),
+            'certifications': forms.TextInput(attrs={'class': 'admin-input'}),
+            'contact': forms.TextInput(attrs={'class': 'admin-input'}),
+            'email': forms.EmailInput(attrs={'class': 'admin-input'}),
+            'available_days': forms.TextInput(attrs={'class': 'admin-input'}),
+        }
+
+
+class MembershipPackageForm(forms.ModelForm):
+    class Meta:
+        model = MembershipPackage
+        fields = ['name', 'price', 'duration_days', 'description', 'is_active']
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'admin-input'}),
+            'price': forms.NumberInput(attrs={'class': 'admin-input'}),
+            'duration_days': forms.NumberInput(attrs={'class': 'admin-input'}),
+            'description': forms.Textarea(attrs={'class': 'admin-input', 'rows': 3}),
+        }
+
+
+from django.contrib.auth.models import User
+from .models import MembershipPackage
+
+class AssignSubscriptionForm(forms.Form):
+    package = forms.ModelChoiceField(
+        queryset=MembershipPackage.objects.filter(is_active=True),
+        widget=forms.Select(attrs={'class': 'admin-input'})
+    )
+    payment_method = forms.ChoiceField(
+        choices=(('cash', 'Cash (In-Person)'), ('esewa', 'eSewa')),
+        initial='cash',
+        widget=forms.Select(attrs={'class': 'admin-input'})
+    )
+    start_from_today = forms.BooleanField(
+        required=False,
+        initial=False,
+        label="Start from today (instead of extending current expiry)"
+    )
+
+
+class AdminCreateMemberForm(forms.Form):
+    full_name = forms.CharField(max_length=150, widget=forms.TextInput(attrs={'class': 'admin-input'}))
+    email = forms.EmailField(widget=forms.EmailInput(attrs={'class': 'admin-input'}))
+    contact = forms.CharField(max_length=10, widget=forms.TextInput(attrs={'class': 'admin-input'}))
+    address = forms.CharField(widget=forms.Textarea(attrs={'class': 'admin-input', 'rows': 2}))
+    date_of_birth = forms.DateField(widget=forms.DateInput(attrs={'type': 'date', 'class': 'admin-input'}))
+    gender = forms.ChoiceField(choices=(('male', 'Male'), ('female', 'Female'), ('other', 'Other')),
+                                widget=forms.Select(attrs={'class': 'admin-input'}))
+    password = forms.CharField(widget=forms.PasswordInput(attrs={'class': 'admin-input'}))
+
+    def clean_email(self):
+        email = self.cleaned_data['email']
+        if User.objects.filter(email=email).exists():
+            raise forms.ValidationError("A user with this email already exists.")
+        return email
+
+    def clean_contact(self):
+        import re
+        contact = self.cleaned_data.get('contact', '').strip()
+        if not re.match(r'^(97|98)\d{8}$', contact):
+            raise forms.ValidationError("Enter a valid 10-digit number starting with 97 or 98.")
+        return contact

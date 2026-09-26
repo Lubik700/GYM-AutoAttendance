@@ -1,0 +1,46 @@
+{% extends 'adminpanel/base.html' %}
+{% block title %}Notices | FitTrack Admin{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+    <h1 class="font-display text-2xl font-bold">Notices</h1>
+    <a href="{% url 'admin_notice_add' %}"
+       class="bg-primary hover:bg-red-600 text-white text-sm font-medium px-4 py-2.5 rounded-xl transition-colors">
+        + Add Notice
+    </a>
+</div>
+
+<div class="space-y-3">
+    {% for notice in notices %}
+        <div class="bg-dark-card border border-white/5 rounded-2xl p-5 flex items-center justify-between">
+            <div>
+                <div class="flex items-center gap-2">
+                    <h3 class="text-white font-medium">{{ notice.title }}</h3>
+                    {% if notice.is_important %}
+                        <span class="text-[10px] font-semibold uppercase px-2 py-0.5 rounded-md bg-primary/15 text-primary border border-primary/25">
+                            Important
+                        </span>
+                    {% endif %}
+                </div>
+                <p class="text-xs text-gray-500 mt-1 line-clamp-1">{{ notice.description|truncatewords:20 }}</p>
+                <p class="text-xs text-gray-600 mt-1">{{ notice.uploaded_at|date:"d M Y, h:i A" }}</p>
+            </div>
+            <div class="flex gap-2 shrink-0">
+                <a href="{% url 'admin_notice_edit' notice.id %}"
+                   class="text-xs text-gray-300 hover:text-primary px-3 py-1.5 rounded-lg hover:bg-white/5 transition-colors">
+                    Edit
+                </a>
+                <a href="{% url 'admin_notice_delete' notice.id %}"
+                   onclick="return confirm('Delete this notice? This cannot be undone.');"
+                   class="text-xs text-red-400 hover:text-red-300 px-3 py-1.5 rounded-lg hover:bg-red-500/10 transition-colors">
+                    Delete
+                </a>
+            </div>
+        </div>
+    {% empty %}
+        <div class="bg-dark-card border border-white/5 rounded-2xl p-10 text-center">
+            <p class="text-gray-500 text-sm">No notices yet. Click "Add Notice" to create one.</p>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}

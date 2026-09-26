@@ -1,0 +1,51 @@
+{% extends 'adminpanel/base.html' %}
+{% block title %}{{ title }} | FitTrack Admin{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <h1 class="font-display text-2xl font-bold">{{ title }}</h1>
+</div>
+
+<div class="bg-dark-card border border-white/5 rounded-2xl p-6 max-w-xl">
+
+    {% if form.non_field_errors %}
+        <div class="mb-4 px-4 py-3 rounded-lg text-sm bg-red-500/15 text-red-400 border border-red-500/30">
+            {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+        </div>
+    {% endif %}
+
+    <form method="post" class="space-y-5">
+        {% csrf_token %}
+
+        <div>
+            <label for="{{ form.title.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-1.5">Title</label>
+            {{ form.title }}
+            {% if form.title.errors %}<p class="mt-1.5 text-xs text-red-400">{{ form.title.errors.0 }}</p>{% endif %}
+        </div>
+
+        <div>
+            <label for="{{ form.description.id_for_label }}" class="block text-sm font-medium text-gray-300 mb-1.5">Description</label>
+            {{ form.description }}
+            {% if form.description.errors %}<p class="mt-1.5 text-xs text-red-400">{{ form.description.errors.0 }}</p>{% endif %}
+        </div>
+
+        <div class="flex items-center gap-2.5">
+            {{ form.is_important }}
+            <label for="{{ form.is_important.id_for_label }}" class="text-sm text-gray-300 cursor-pointer select-none">
+                Mark as important
+            </label>
+        </div>
+
+        <div class="flex gap-3 pt-2">
+            <button type="submit"
+                    class="flex-1 bg-primary hover:bg-red-600 text-white font-semibold py-2.5 rounded-xl transition-colors">
+                Save
+            </button>
+            <a href="{% url 'admin_notices' %}"
+               class="flex-1 text-center bg-dark-bg border border-dark-secondary text-gray-300 hover:text-white hover:border-gray-500 font-medium py-2.5 rounded-xl transition-colors">
+                Cancel
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,18 @@
+{% url 'admin_dashboard' as dashboard_url %}
+{% url 'admin_pending' as pending_url %}
+{% url 'admin_notices' as notices_url %}
+
+<a href="{{ dashboard_url }}" class="block px-3 py-2.5 rounded-xl text-sm {% if request.path == dashboard_url %}bg-primary/15 text-primary{% else %}text-gray-300 hover:bg-white/5{% endif %}">Dashboard</a>
+<a href="{{ pending_url }}" class="block px-3 py-2.5 rounded-xl text-sm {% if request.path == pending_url %}bg-primary/15 text-primary{% else %}text-gray-300 hover:bg-white/5{% endif %}">Pending Registrations</a>
+<a href="{{ notices_url }}" class="block px-3 py-2.5 rounded-xl text-sm {% if request.path == notices_url %}bg-primary/15 text-primary{% else %}text-gray-300 hover:bg-white/5{% endif %}">Notices</a>
+{% url 'admin_members' as members_url %}
+{% url 'admin_trainers' as trainers_url %}
+{% url 'admin_packages' as packages_url %}
+{% url 'admin_subscriptions' as subs_url %}
+{% url 'admin_feedback' as feedback_url %}
+
+<a href="{{ members_url }}" class="block px-3 py-2.5 rounded-xl text-sm {% if request.path == members_url %}bg-primary/15 text-primary{% else %}text-gray-300 hover:bg-white/5{% endif %}">Members</a>
+<a href="{{ trainers_url }}" class="block px-3 py-2.5 rounded-xl text-sm {% if request.path == trainers_url %}bg-primary/15 text-primary{% else %}text-gray-300 hover:bg-white/5{% endif %}">Trainers</a>
+<a href="{{ packages_url }}" class="block px-3 py-2.5 rounded-xl text-sm {% if request.path == packages_url %}bg-primary/15 text-primary{% else %}text-gray-300 hover:bg-white/5{% endif %}">Membership Packages</a>
+<a href="{{ subs_url }}" class="block px-3 py-2.5 rounded-xl text-sm {% if request.path == subs_url %}bg-primary/15 text-primary{% else %}text-gray-300 hover:bg-white/5{% endif %}">Subscriptions</a>
+<a href="{{ feedback_url }}" class="block px-3 py-2.5 rounded-xl text-sm {% if request.path == feedback_url %}bg-primary/15 text-primary{% else %}text-gray-300 hover:bg-white/5{% endif %}">Feedback</a>

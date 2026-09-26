@@ -1,0 +1,37 @@
+{% extends 'adminpanel/base.html' %}
+{% block content %}
+<a href="{% url 'admin_member_detail' member.id %}" class="text-xs text-gray-400 hover:text-primary mb-4 inline-block">← Back to {{ member.username }}</a>
+
+<h1 class="font-display text-2xl font-bold mb-6">Assign / Renew Subscription</h1>
+<p class="text-sm text-gray-400 mb-6">For: <span class="text-white">{{ member.profile.name|default:member.username }}</span></p>
+
+<div class="bg-dark-card border border-white/5 rounded-2xl p-6 max-w-lg">
+    <form method="post" class="space-y-5">
+        {% csrf_token %}
+        <div>
+            <label class="block text-sm font-medium text-gray-300 mb-1.5">Package</label>
+            {{ form.package }}
+        </div>
+        <div>
+            <label class="block text-sm font-medium text-gray-300 mb-1.5">Payment Method</label>
+            {{ form.payment_method }}
+        </div>
+        <div class="flex items-center gap-2.5">
+            {{ form.start_from_today }}
+            <label class="text-sm text-gray-300">{{ form.start_from_today.label }}</label>
+        </div>
+        <p class="text-xs text-gray-500">
+            If the member has an active subscription, the new one extends from its expiry date by default.
+            Check the box above to start fresh from today instead (e.g. if switching plans).
+        </p>
+        <div class="flex gap-3 pt-2">
+            <button type="submit" class="flex-1 bg-primary hover:bg-red-600 text-white font-semibold py-2.5 rounded-xl transition-colors">
+                Confirm
+            </button>
+            <a href="{% url 'admin_member_detail' member.id %}" class="flex-1 text-center bg-dark-bg border border-dark-secondary text-gray-300 hover:text-white py-2.5 rounded-xl transition-colors">
+                Cancel
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

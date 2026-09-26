@@ -48,7 +48,7 @@ def login_view(request):
 
             if user_obj and user_obj.check_password(password):
                 if not user_obj.is_active:
-                    form.add_error(None, "Your registration is pending approval. Please visit the gym for verification.")
+                    form.add_error(None, "Your account isn't active yet. If you didn't complete payment during registration, please register again or contact the gym.")
                 # else:
                 #     status = get_subscription_status(user_obj)
                 #     if not status['has_sub']:
@@ -120,6 +120,46 @@ def home(request):
     }
     return render(request, 'app/home.html', context)
 
+# def register_view(request):
+#     if request.method == 'POST':
+#         form = RegisterForm(request.POST, request.FILES)
+#         if form.is_valid():
+#             data = form.cleaned_data
+#             base_username = data['email'].split('@')[0]
+#             username = base_username
+#             counter = 1
+#             while User.objects.filter(username=username).exists():
+#                 username = f"{base_username}{counter}"
+#                 counter += 1
+
+#             user = User.objects.create_user(
+#                 username=username,
+#                 email=data['email'],
+#                 password=data['password'],
+#             )
+#             user.is_active = False   # pending approval
+#             user.save()
+
+#             Profile.objects.create(
+#                 user=user,
+#                 profile_picture=data.get('profile_picture'),
+#                 name=data['name'],
+#                 contact=data['contact'],
+#                 address=data['address'],
+#                 date_of_birth=data['date_of_birth'],
+#                 gender=data['gender'],
+#             )
+#             return redirect('registration_success')
+#     else:
+#         form = RegisterForm()
+#     return render(request, 'app/register.html', {'form': form})
+
+
+# def registration_success_view(request):
+#     return render(request, 'app/registration_success.html')
+
+
+
 def register_view(request):
     if request.method == 'POST':
         form = RegisterForm(request.POST, request.FILES)
@@ -137,7 +177,7 @@ def register_view(request):
                 email=data['email'],
                 password=data['password'],
             )
-            user.is_active = False   # pending approval
+            user.is_active = False   # stays inactive until payment succeeds
             user.save()
 
             Profile.objects.create(
@@ -149,14 +189,15 @@ def register_view(request):
                 date_of_birth=data['date_of_birth'],
                 gender=data['gender'],
             )
-            return redirect('registration_success')
+
+            # Store the new user's id + chosen package so eSewa flow knows what to do after payment
+            request.session['registration_user_id'] = user.id
+            request.session['registration_package_id'] = data['package'].id
+
+            return redirect('esewa_initiate_registration')
     else:
         form = RegisterForm()
     return render(request, 'app/register.html', {'form': form})
-
-
-def registration_success_view(request):
-    return render(request, 'app/registration_success.html')
 
 
 @login_required
@@ -382,51 +423,13 @@ def settings_view(request):
 
 
 # views.py
-from django.contrib.auth import authenticate, login as auth_login
-
-def admin_login_view(request):
-    if request.method == 'POST':
-        username = request.POST.get('username')
-        password = request.POST.get('password')
-        user = authenticate(request, username=username, password=password)
-        if user and user.is_staff:
-            auth_login(request, user)
-            return redirect('admin_dashboard')
-        messages.error(request, "Invalid credentials or not authorized.")
-    return render(request, 'admin/login.html')
 
 
-@staff_required
-def admin_dashboard(request):
-    context = {
-        'pending_count': User.objects.filter(is_active=False).count(),
-        'active_members': User.objects.filter(is_active=True, is_staff=False).count(),
-        'total_notices': Notice.objects.count(),
-    }
-    return render(request, 'admin/dashboard.html', context)
 
 
-@staff_required
-def admin_pending(request):
-    pending_users = User.objects.filter(is_active=False).select_related('profile')
-    return render(request, 'admin/pending.html', {'pending_users': pending_users})
 
 
-@staff_required
-def admin_approve_user(request, user_id):
-    user = get_object_or_404(User, id=user_id, is_active=False)
-    user.is_active = True
-    user.save()
-    messages.success(request, f"{user.username} has been approved.")
-    return redirect('admin_pending')
 
-
-@staff_required
-def admin_reject_user(request, user_id):
-    user = get_object_or_404(User, id=user_id, is_active=False)
-    user.delete()
-    messages.success(request, "Registration rejected and removed.")
-    return redirect('admin_pending')
 
 
 from .models import BMIRecord, WorkoutPlan, WorkoutDay, Exercise
@@ -538,6 +541,84 @@ def generate_esewa_signature(total_amount, transaction_uuid, product_code):
     return base64.b64encode(hmac_obj.digest()).decode()
 
 
+
+def esewa_initiate_registration(request):
+    user_id = request.session.get('registration_user_id')
+    package_id = request.session.get('registration_package_id')
+
+    if not (user_id and package_id):
+        messages.error(request, "Registration session expired. Please register again.")
+        return redirect('register')
+
+    package = get_object_or_404(MembershipPackage, id=package_id, is_active=True)
+    transaction_uuid = f"reg-{user_id}-{uuid.uuid4().hex[:10]}"
+    amount = package.price
+
+    request.session['registration_txn_uuid'] = transaction_uuid
+
+    signature = generate_esewa_signature(amount, transaction_uuid, ESEWA_MERCHANT_CODE)
+
+    context = {
+        'amount': amount,
+        'tax_amount': 0,
+        'total_amount': amount,
+        'transaction_uuid': transaction_uuid,
+        'product_code': ESEWA_MERCHANT_CODE,
+        'product_service_charge': 0,
+        'product_delivery_charge': 0,
+        'success_url': request.build_absolute_uri('/register/esewa/success/'),
+        'failure_url': request.build_absolute_uri('/register/esewa/failure/'),
+        'signed_field_names': 'total_amount,transaction_uuid,product_code',
+        'signature': signature,
+        'payment_url': ESEWA_PAYMENT_URL,
+    }
+    return render(request, 'app/esewa_redirect.html', context)
+
+
+def esewa_registration_success(request):
+    user_id = request.session.pop('registration_user_id', None)
+    package_id = request.session.pop('registration_package_id', None)
+    txn_uuid = request.session.pop('registration_txn_uuid', None)
+    encoded_data = request.GET.get('data')
+
+    if not (user_id and package_id and txn_uuid and encoded_data):
+        messages.error(request, "Payment verification failed. Please try registering again.")
+        return redirect('register')
+
+    decoded = json.loads(base64.b64decode(encoded_data))
+    if decoded.get('status') != 'COMPLETE' or decoded.get('transaction_uuid') != txn_uuid:
+        messages.error(request, "Payment could not be verified.")
+        return redirect('register')
+
+    user = get_object_or_404(User, id=user_id)
+    package = get_object_or_404(MembershipPackage, id=package_id)
+
+    start = timezone.localdate()
+    Subscription.objects.create(
+        user=user,
+        package=package,
+        start_date=start,
+        end_date=start + timedelta(days=package.duration_days),
+        amount_paid=package.price,
+        payment_method='esewa',
+        transaction_id=txn_uuid,
+    )
+
+    user.is_active = True
+    user.save()
+
+    messages.success(request, "Registration and payment successful! You can now log in.")
+    return redirect('login')
+
+
+def esewa_registration_failure(request):
+    user_id = request.session.get('registration_user_id')
+    messages.error(request, "Payment failed or was cancelled. You can retry payment or contact the gym for assistance.")
+    if user_id:
+        return redirect('esewa_initiate_registration')  # let them retry
+    return redirect('register')
+
+
 @login_required
 def esewa_initiate(request, package_id):
     package = get_object_or_404(MembershipPackage, id=package_id, is_active=True)
@@ -629,3 +710,5 @@ def bmi_progress_view(request):
         'chart_data': json.dumps(chart_data, cls=DjangoJSONEncoder),
         'latest': records.last(),
     })
+
+

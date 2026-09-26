@@ -15,7 +15,6 @@ urlpatterns = [
         name='password_reset',
     ),
    path('register/', views.register_view, name='register'),
-path('register/success/', views.registration_success_view, name='registration_success'),
 path('', views.landing_view, name='landing'),
 path('login/', views.login_view, name='login'),
 path('notices/', views.notices_view, name='notices'),
@@ -40,13 +39,9 @@ path('membership/esewa/initiate/<int:package_id>/', views.esewa_initiate, name='
 path('membership/esewa/success/', views.esewa_success, name='esewa_success'),
 path('membership/esewa/failure/', views.esewa_failure, name='esewa_failure'),
 
-path('management/login/', views.admin_login_view, name='admin_login'),
-path('management/', views.admin_dashboard, name='admin_dashboard'),
-
-path('management/pending/', views.admin_pending, name='admin_pending'),
-path('management/pending/<int:user_id>/approve/', views.admin_approve_user, name='admin_approve_user'),
-path('management/pending/<int:user_id>/reject/', views.admin_reject_user, name='admin_reject_user'),
-
+path('register/esewa/initiate/', views.esewa_initiate_registration, name='esewa_initiate_registration'),
+path('register/esewa/success/', views.esewa_registration_success, name='esewa_registration_success'),
+path('register/esewa/failure/', views.esewa_registration_failure, name='esewa_registration_failure'),
 
 
 path('bmi-calculator/', views.bmi_calculator_view, name='bmi_calculator'),

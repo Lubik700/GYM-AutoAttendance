@@ -25,8 +25,8 @@ SECRET_KEY = 'django-insecure-=u8saqx22%o(5qd1sxskm&+=sp=zxyzu8@(gz#w@7yr-+xkmfs
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
-
+# ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 # Application definition
 
@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'app',
     'tailwind',
     'theme',
+    'adminpanel',
 ]
 TAILWIND_APP_NAME = "theme"
 
@@ -160,3 +161,10 @@ MEDIA_URL = '/media/'
 
 # The absolute filesystem path to the directory that holds user-uploaded files
 MEDIA_ROOT = BASE_DIR / 'media'
+
+
+CSRF_TRUSTED_ORIGINS = [
+    'https://*.trycloudflare.com',
+    'https://localhost',
+    'https://127.0.0.1'
+]
