@@ -49,19 +49,6 @@ def login_view(request):
             if user_obj and user_obj.check_password(password):
                 if not user_obj.is_active:
                     form.add_error(None, "Your account isn't active yet. If you didn't complete payment during registration, please register again or contact the gym.")
-                # else:
-                #     status = get_subscription_status(user_obj)
-                #     if not status['has_sub']:
-                #        form.add_error(None, "You don't have an active membership yet. Please visit the gym to purchase a package.")
-                #     elif not status['is_active'] and status['days_expired'] > 2:
-                #         form.add_error(None, "Your membership expired more than 2 days ago. Please visit the gym to renew.")
-                #     else:
-                #          user_obj.backend = 'app.backends.EmailOrUsernameBackend'
-                #          login(request, user_obj)
-                #          request.session.set_expiry(60 * 60 * 24 * 30 if remember_me else 0)
-                #          next_url = request.POST.get('next') or request.GET.get('next') or 'home'
-                #          return redirect(next_url)
-
 
                 else:
                     user_obj.backend = 'app.backends.EmailOrUsernameBackend'

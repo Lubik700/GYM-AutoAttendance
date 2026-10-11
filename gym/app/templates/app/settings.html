@@ -1,90 +1,229 @@
 {% extends 'app/base.html' %}
-{% block title %}Settings | FitTrack{% endblock %}
+{% block title %}Account Settings | FitTrack{% endblock %}
 
 {% block content %}
-<div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
+<div class="w-full max-w-2xl mx-auto space-y-8 pb-12">
 
-    <div class="mb-8">
-        <h1 class="font-display text-2xl sm:text-3xl font-bold text-black tracking-tight">Settings</h1>
-        <p class="text-black-400 text-sm mt-1">Manage your profile and account security</p>
+    <!-- ========== PAGE HEADER ========== -->
+    <div class="pt-2">
+        <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold mb-2">
+            <!-- Gear / Settings Icon -->
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+            </svg>
+            Preferences & Security
+        </div>
+        <h1 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+            Account Settings
+        </h1>
+        <p class="text-slate-400 text-sm mt-0.5">
+            Manage your personal profile information and update your account password.
+        </p>
     </div>
 
+    <!-- ========== DJANGO FLASH MESSAGES ========== -->
     {% if messages %}
-        {% for message in messages %}
-            <div class="mb-5 px-4 py-3 rounded-lg text-sm bg-success/15 text-green-400 border border-success/30">
-                {{ message }}
-            </div>
-        {% endfor %}
+        <div class="space-y-3">
+            {% for message in messages %}
+                <div class="flex items-center gap-3 px-4 py-3.5 rounded-xl text-xs sm:text-sm font-medium shadow-md transition-all
+                    {% if message.tags == 'error' %}
+                        bg-rose-500/10 text-rose-300 border border-rose-500/30
+                    {% else %}
+                        bg-emerald-500/10 text-emerald-300 border border-emerald-500/30
+                    {% endif %}">
+                    {% if message.tags == 'error' %}
+                        <svg class="w-5 h-5 text-rose-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    {% else %}
+                        <svg class="w-5 h-5 text-emerald-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    {% endif %}
+                    <span class="flex-1">{{ message }}</span>
+                </div>
+            {% endfor %}
+        </div>
     {% endif %}
 
-    <!-- Update Profile -->
-    <div class="bg-dark-card border border-gray/5 rounded-2xl p-6 sm:p-8 mb-6">
-        <h2 class="font-display text-lg font-semibold text-black mb-5">Profile Details</h2>
+    <!-- ========== SECTION 1: UPDATE PROFILE DETAILS ========== -->
+    <div class="relative overflow-hidden bg-slate-900/80 backdrop-blur-xl border border-white/[0.08] rounded-2xl p-6 sm:p-8 shadow-xl">
+        <!-- Accent stripe -->
+        <div class="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-300"></div>
+
+        <div class="flex items-center gap-3 mb-6 pb-4 border-b border-white/[0.06]">
+            <div class="w-9 h-9 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                </svg>
+            </div>
+            <div>
+                <h2 class="text-lg font-bold text-white tracking-tight">Profile Details</h2>
+                <p class="text-xs text-slate-400">Update your public name, contact number, and address</p>
+            </div>
+        </div>
 
         <form method="post" enctype="multipart/form-data" class="space-y-5">
             {% csrf_token %}
             <input type="hidden" name="update_profile" value="1">
 
+            <!-- Profile Picture -->
             <div>
-                <label class="block text-sm font-medium text-black-300 mb-1.5">Profile Picture</label>
-                {{ profile_form.profile_picture }}
+                <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
+                    Profile Picture
+                </label>
+                <div class="p-3 rounded-xl bg-slate-950/60 border border-dashed border-white/15 hover:border-emerald-500/50 transition-colors [&>input]:text-xs [&>input]:text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-emerald-500/10 file:text-emerald-400 hover:file:bg-emerald-500/20 file:cursor-pointer">
+                    {{ profile_form.profile_picture }}
+                </div>
+                {% if profile_form.profile_picture.errors %}
+                    <p class="mt-1.5 text-xs text-rose-400 flex items-center gap-1 font-medium">
+                        <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        {{ profile_form.profile_picture.errors.0 }}
+                    </p>
+                {% endif %}
             </div>
 
+            <!-- Full Name -->
             <div>
-                <label class="block text-sm font-medium text-black-300 mb-1.5">Full Name</label>
-                {{ profile_form.name }}
-                {% if profile_form.name.errors %}<p class="mt-1.5 text-xs text-red-400">{{ profile_form.name.errors.0 }}</p>{% endif %}
+                <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
+                    Full Name
+                </label>
+                <div class="[&>input]:w-full [&>input]:bg-slate-950/70 [&>input]:border [&>input]:border-white/10 [&>input]:focus:border-emerald-500 [&>input]:focus:ring-1 [&>input]:focus:ring-emerald-500 [&>input]:text-white [&>input]:placeholder-slate-500 [&>input]:text-sm [&>input]:rounded-xl [&>input]:px-4 [&>input]:py-3 [&>input]:transition-all">
+                    {{ profile_form.name }}
+                </div>
+                {% if profile_form.name.errors %}
+                    <p class="mt-1.5 text-xs text-rose-400 flex items-center gap-1 font-medium">
+                        <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        {{ profile_form.name.errors.0 }}
+                    </p>
+                {% endif %}
             </div>
 
+            <!-- Contact Number -->
             <div>
-                <label class="block text-sm font-medium text-black-300 mb-1.5">Contact Number</label>
-                {{ profile_form.contact }}
-                {% if profile_form.contact.errors %}<p class="mt-1.5 text-xs text-red-400">{{ profile_form.contact.errors.0 }}</p>{% endif %}
+                <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
+                    Contact Number
+                </label>
+                <div class="[&>input]:w-full [&>input]:bg-slate-950/70 [&>input]:border [&>input]:border-white/10 [&>input]:focus:border-emerald-500 [&>input]:focus:ring-1 [&>input]:focus:ring-emerald-500 [&>input]:text-white [&>input]:placeholder-slate-500 [&>input]:text-sm [&>input]:rounded-xl [&>input]:px-4 [&>input]:py-3 [&>input]:transition-all">
+                    {{ profile_form.contact }}
+                </div>
+                {% if profile_form.contact.errors %}
+                    <p class="mt-1.5 text-xs text-rose-400 flex items-center gap-1 font-medium">
+                        <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        {{ profile_form.contact.errors.0 }}
+                    </p>
+                {% endif %}
             </div>
 
+            <!-- Address -->
             <div>
-                <label class="block text-sm font-medium text-black-300 mb-1.5">Address</label>
-                {{ profile_form.address }}
-                {% if profile_form.address.errors %}<p class="mt-1.5 text-xs text-red-400">{{ profile_form.address.errors.0 }}</p>{% endif %}
+                <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
+                    Residential Address
+                </label>
+                <div class="[&>input]:w-full [&>input]:bg-slate-950/70 [&>input]:border [&>input]:border-white/10 [&>input]:focus:border-emerald-500 [&>input]:focus:ring-1 [&>input]:focus:ring-emerald-500 [&>input]:text-white [&>input]:placeholder-slate-500 [&>input]:text-sm [&>input]:rounded-xl [&>input]:px-4 [&>input]:py-3 [&>input]:transition-all [&>textarea]:w-full [&>textarea]:bg-slate-950/70 [&>textarea]:border [&>textarea]:border-white/10 [&>textarea]:focus:border-emerald-500 [&>textarea]:text-white [&>textarea]:rounded-xl [&>textarea]:p-4">
+                    {{ profile_form.address }}
+                </div>
+                {% if profile_form.address.errors %}
+                    <p class="mt-1.5 text-xs text-rose-400 flex items-center gap-1 font-medium">
+                        <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        {{ profile_form.address.errors.0 }}
+                    </p>
+                {% endif %}
             </div>
 
-            <button type="submit"
-                    class="bg-black  text-white hover:text-red-400 font-semibold py-2.5 px-5 rounded-xl transition-colors border hover:border-red-500">
-                Save Changes
-            </button>
+            <!-- Save Profile CTA -->
+            <div class="pt-2">
+                <button type="submit"
+                        class="inline-flex items-center justify-center gap-2 py-3 px-6 rounded-xl text-xs sm:text-sm font-bold text-slate-950 bg-gradient-to-r from-emerald-400 to-teal-400 hover:from-emerald-300 hover:to-teal-300 shadow-lg shadow-emerald-950/40 hover:shadow-emerald-500/20 active:scale-95 transition-all">
+                    <svg class="w-4 h-4 text-slate-950" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    <span>Save Profile Changes</span>
+                </button>
+            </div>
         </form>
     </div>
 
-    <!-- Change Password -->
-    <div class="bg-dark-card border border-gray/5 rounded-2xl p-6 sm:p-8">
-        <h2 class="font-display text-lg font-semibold text-black mb-5">Change Password</h2>
+    <!-- ========== SECTION 2: CHANGE PASSWORD ========== -->
+    <div class="relative overflow-hidden bg-slate-900/80 backdrop-blur-xl border border-white/[0.08] rounded-2xl p-6 sm:p-8 shadow-xl">
+        <!-- Cyan/Teal accent stripe -->
+        <div class="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-teal-500 via-emerald-400 to-teal-300"></div>
+
+        <div class="flex items-center gap-3 mb-6 pb-4 border-b border-white/[0.06]">
+            <div class="w-9 h-9 rounded-xl bg-teal-500/10 border border-teal-500/20 text-teal-400 flex items-center justify-center">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                </svg>
+            </div>
+            <div>
+                <h2 class="text-lg font-bold text-white tracking-tight">Change Password</h2>
+                <p class="text-xs text-slate-400">Ensure your account is using a long, random password to stay secure</p>
+            </div>
+        </div>
 
         <form method="post" class="space-y-5">
             {% csrf_token %}
             <input type="hidden" name="change_password" value="1">
 
+            <!-- Current Password -->
             <div>
-                <label class="block text-sm font-medium text-black-300 mb-1.5">Current Password</label>
-                {{ password_form.old_password }}
-                {% if password_form.old_password.errors %}<p class="mt-1.5 text-xs text-red-400">{{ password_form.old_password.errors.0 }}</p>{% endif %}
+                <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
+                    Current Password
+                </label>
+                <div class="[&>input]:w-full [&>input]:bg-slate-950/70 [&>input]:border [&>input]:border-white/10 [&>input]:focus:border-teal-400 [&>input]:focus:ring-1 [&>input]:focus:ring-teal-400 [&>input]:text-white [&>input]:placeholder-slate-500 [&>input]:text-sm [&>input]:rounded-xl [&>input]:px-4 [&>input]:py-3 [&>input]:transition-all">
+                    {{ password_form.old_password }}
+                </div>
+                {% if password_form.old_password.errors %}
+                    <p class="mt-1.5 text-xs text-rose-400 flex items-center gap-1 font-medium">
+                        <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        {{ password_form.old_password.errors.0 }}
+                    </p>
+                {% endif %}
             </div>
 
+            <!-- New Password -->
             <div>
-                <label class="block text-sm font-medium text-black-300 mb-1.5">New Password</label>
-                {{ password_form.new_password1 }}
-                {% if password_form.new_password1.errors %}<p class="mt-1.5 text-xs text-red-400">{{ password_form.new_password1.errors.0 }}</p>{% endif %}
+                <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
+                    New Password
+                </label>
+                <div class="[&>input]:w-full [&>input]:bg-slate-950/70 [&>input]:border [&>input]:border-white/10 [&>input]:focus:border-teal-400 [&>input]:focus:ring-1 [&>input]:focus:ring-teal-400 [&>input]:text-white [&>input]:placeholder-slate-500 [&>input]:text-sm [&>input]:rounded-xl [&>input]:px-4 [&>input]:py-3 [&>input]:transition-all">
+                    {{ password_form.new_password1 }}
+                </div>
+                {% if password_form.new_password1.errors %}
+                    <p class="mt-1.5 text-xs text-rose-400 flex items-center gap-1 font-medium">
+                        <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        {{ password_form.new_password1.errors.0 }}
+                    </p>
+                {% endif %}
             </div>
 
+            <!-- Confirm New Password -->
             <div>
-                <label class="block text-sm font-medium text-black-300 mb-1.5">Confirm New Password</label>
-                {{ password_form.new_password2 }}
-                {% if password_form.new_password2.errors %}<p class="mt-1.5 text-xs text-red-400">{{ password_form.new_password2.errors.0 }}</p>{% endif %}
+                <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
+                    Confirm New Password
+                </label>
+                <div class="[&>input]:w-full [&>input]:bg-slate-950/70 [&>input]:border [&>input]:border-white/10 [&>input]:focus:border-teal-400 [&>input]:focus:ring-1 [&>input]:focus:ring-teal-400 [&>input]:text-white [&>input]:placeholder-slate-500 [&>input]:text-sm [&>input]:rounded-xl [&>input]:px-4 [&>input]:py-3 [&>input]:transition-all">
+                    {{ password_form.new_password2 }}
+                </div>
+                {% if password_form.new_password2.errors %}
+                    <p class="mt-1.5 text-xs text-rose-400 flex items-center gap-1 font-medium">
+                        <svg class="w-3.5 h-3.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        {{ password_form.new_password2.errors.0 }}
+                    </p>
+                {% endif %}
             </div>
 
-            <button type="submit"
-                    class="bg-black border border-dark-secondary text-white hover:text-red-400 hover:border-red-500 font-medium py-2.5 px-5 rounded-xl transition-colors">
-                Update Password
-            </button>
+            <!-- Update Password CTA -->
+            <div class="pt-2">
+                <button type="submit"
+                        class="inline-flex items-center justify-center gap-2 py-3 px-6 rounded-xl text-xs sm:text-sm font-bold text-white bg-slate-800 hover:bg-slate-700 border border-white/10 hover:border-teal-400/40 shadow-sm active:scale-95 transition-all">
+                    <svg class="w-4 h-4 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
+                    </svg>
+                    <span>Update Password</span>
+                </button>
+            </div>
         </form>
     </div>
 

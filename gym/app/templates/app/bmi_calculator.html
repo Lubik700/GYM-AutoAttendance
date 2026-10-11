@@ -1,69 +1,211 @@
 {% extends 'app/base.html' %}
-{% block title %}BMI Calculator | FitTrack{% endblock %}
+{% block title %}BMI Calculator & Plan Advisor | FitTrack{% endblock %}
 
 {% block content %}
-<div class="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
+<div class="w-full max-w-2xl mx-auto space-y-6 pb-12">
 
-    <div class="mb-8">
-        <h1 class="font-display text-2xl sm:text-3xl font-bold text-black tracking-tight">BMI Calculator</h1>
-        <p class="text-black-400 text-sm mt-1">Get a workout plan recommendation based on your BMI and goal</p>
+    <!-- ========== PAGE HEADER ========== -->
+    <div class="pt-2">
+        <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold mb-2">
+            <!-- Calculator / Scale Icon -->
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"/>
+            </svg>
+            Biometric Assessment
+        </div>
+        <h1 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+            BMI Calculator
+        </h1>
+        <p class="text-slate-400 text-sm mt-0.5">
+            Calculate your Body Mass Index and receive a customized workout split based on your goals.
+        </p>
     </div>
 
+    <!-- ========== DJANGO FLASH MESSAGES ========== -->
     {% if messages %}
-        {% for message in messages %}
-            <div class="mb-5 px-4 py-3 rounded-lg text-sm bg-success/15 text-green-400 border border-success/30">{{ message }}</div>
-        {% endfor %}
+        <div class="space-y-3">
+            {% for message in messages %}
+                <div class="flex items-center gap-3 px-4 py-3.5 rounded-xl text-xs sm:text-sm font-medium shadow-md transition-all
+                    {% if message.tags == 'error' %}
+                        bg-rose-500/10 text-rose-300 border border-rose-500/30
+                    {% else %}
+                        bg-emerald-500/10 text-emerald-300 border border-emerald-500/30
+                    {% endif %}">
+                    {% if message.tags == 'error' %}
+                        <svg class="w-5 h-5 text-rose-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    {% else %}
+                        <svg class="w-5 h-5 text-emerald-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    {% endif %}
+                    <span class="flex-1">{{ message }}</span>
+                </div>
+            {% endfor %}
+        </div>
     {% endif %}
 
-    <div class="bg-dark-card border border-white/5 rounded-2xl p-6 sm:p-8 mb-6">
+    <!-- ========== CALCULATOR FORM CARD ========== -->
+    <div class="relative overflow-hidden bg-slate-900/80 backdrop-blur-xl border border-white/[0.08] rounded-2xl p-6 sm:p-8 shadow-xl">
+        <!-- Accent stripe -->
+        <div class="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-300"></div>
+
         <form method="post" class="space-y-5">
             {% csrf_token %}
-            <div class="grid grid-cols-2 gap-4">
+
+            <!-- Height & Weight Row -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-sm font-medium text-black-300 mb-1.5">Height (cm)</label>
-                    {{ form.height_cm }}
+                    <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
+                        Height (cm) <span class="text-emerald-400">*</span>
+                    </label>
+                    <div class="relative [&>input]:w-full [&>input]:bg-slate-950/70 [&>input]:border [&>input]:border-white/10 [&>input]:focus:border-emerald-500 [&>input]:focus:ring-1 [&>input]:focus:ring-emerald-500 [&>input]:text-white [&>input]:placeholder-slate-500 [&>input]:text-sm [&>input]:rounded-xl [&>input]:px-4 [&>input]:py-3 [&>input]:transition-all">
+                        {{ form.height_cm }}
+                    </div>
                 </div>
+
                 <div>
-                    <label class="block text-sm font-medium text-black-300 mb-1.5">Weight (kg)</label>
-                    {{ form.weight_kg }}
+                    <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
+                        Weight (kg) <span class="text-emerald-400">*</span>
+                    </label>
+                    <div class="relative [&>input]:w-full [&>input]:bg-slate-950/70 [&>input]:border [&>input]:border-white/10 [&>input]:focus:border-emerald-500 [&>input]:focus:ring-1 [&>input]:focus:ring-emerald-500 [&>input]:text-white [&>input]:placeholder-slate-500 [&>input]:text-sm [&>input]:rounded-xl [&>input]:px-4 [&>input]:py-3 [&>input]:transition-all">
+                        {{ form.weight_kg }}
+                    </div>
                 </div>
             </div>
-            <div class="grid grid-cols-2 gap-4">
+
+            <!-- Age & Activity Level Row -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                    <label class="block text-sm font-medium text-black-300 mb-1.5">Age</label>
-                    {{ form.age }}
+                    <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
+                        Age (Years) <span class="text-emerald-400">*</span>
+                    </label>
+                    <div class="relative [&>input]:w-full [&>input]:bg-slate-950/70 [&>input]:border [&>input]:border-white/10 [&>input]:focus:border-emerald-500 [&>input]:focus:ring-1 [&>input]:focus:ring-emerald-500 [&>input]:text-white [&>input]:placeholder-slate-500 [&>input]:text-sm [&>input]:rounded-xl [&>input]:px-4 [&>input]:py-3 [&>input]:transition-all">
+                        {{ form.age }}
+                    </div>
                 </div>
+
                 <div>
-                    <label class="block text-sm font-medium text-black-300 mb-1.5">Activity Level</label>
-                    {{ form.activity_level }}
+                    <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
+                        Activity Level <span class="text-emerald-400">*</span>
+                    </label>
+                    <div class="relative [&>select]:w-full [&>select]:bg-slate-950/70 [&>select]:border [&>select]:border-white/10 [&>select]:focus:border-emerald-500 [&>select]:focus:ring-1 [&>select]:focus:ring-emerald-500 [&>select]:text-white [&>select]:text-sm [&>select]:rounded-xl [&>select]:px-4 [&>select]:py-3 [&>select]:transition-all [&>input]:w-full [&>input]:bg-slate-950/70 [&>input]:border [&>input]:border-white/10 [&>input]:focus:border-emerald-500 [&>input]:text-white [&>input]:text-sm [&>input]:rounded-xl [&>input]:px-4 [&>input]:py-3">
+                        {{ form.activity_level }}
+                    </div>
                 </div>
             </div>
+
+            <!-- Fitness Goal -->
             <div>
-                <label class="block text-sm font-medium text-black-300 mb-1.5">Goal</label>
-                {{ form.goal }}
+                <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
+                    Primary Fitness Goal <span class="text-emerald-400">*</span>
+                </label>
+                <div class="relative [&>select]:w-full [&>select]:bg-slate-950/70 [&>select]:border [&>select]:border-white/10 [&>select]:focus:border-emerald-500 [&>select]:focus:ring-1 [&>select]:focus:ring-emerald-500 [&>select]:text-white [&>select]:text-sm [&>select]:rounded-xl [&>select]:px-4 [&>select]:py-3 [&>select]:transition-all [&>input]:w-full [&>input]:bg-slate-950/70 [&>input]:border [&>input]:border-white/10 [&>input]:focus:border-emerald-500 [&>input]:text-white [&>input]:text-sm [&>input]:rounded-xl [&>input]:px-4 [&>input]:py-3">
+                    {{ form.goal }}
+                </div>
             </div>
-            <button type="submit" class="w-full bg-primary hover:bg-primary-hover text-black font-semibold py-3 rounded-xl transition-colors">
-                Calculate BMI
-            </button>
+
+            <!-- Calculate CTA Button -->
+            <div class="pt-2">
+                <button type="submit"
+                        class="w-full inline-flex items-center justify-center gap-2 py-3.5 px-6 rounded-xl text-sm font-bold text-slate-950 bg-gradient-to-r from-emerald-400 to-teal-400 hover:from-emerald-300 hover:to-teal-300 shadow-lg shadow-emerald-950/40 hover:shadow-emerald-500/20 active:scale-95 transition-all">
+                    <svg class="w-4 h-4 text-slate-950" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                    </svg>
+                    <span>Calculate BMI & Generate Plan</span>
+                </button>
+            </div>
         </form>
     </div>
 
+    <!-- ========== LATEST BMI RESULT CARD ========== -->
     {% if latest_record %}
-    <div class="bg-dark-card border border-white/5 rounded-2xl p-6 mb-6 text-center">
-        <p class="text-black-400 text-sm">Your BMI</p>
-        <p class="text-4xl font-display font-bold text-primary mt-1">{{ latest_record.bmi }}</p>
-        <p class="text-sm text-black-300 mt-1">{{ latest_record.bmi_category }}</p>
+    <div class="relative overflow-hidden bg-slate-900/80 backdrop-blur-xl border border-white/[0.08] rounded-2xl p-6 sm:p-7 shadow-xl">
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-5 text-center sm:text-left">
+            <div>
+                <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider block">
+                    Your Current Assessment
+                </span>
+                <div class="flex items-baseline justify-center sm:justify-start gap-2 mt-1">
+                    <span class="text-4xl sm:text-5xl font-extrabold text-emerald-400 tracking-tight">
+                        {{ latest_record.bmi }}
+                    </span>
+                    <span class="text-xs font-semibold text-slate-400">BMI score</span>
+                </div>
+                <div class="mt-2">
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                        {{ latest_record.bmi_category }}
+                    </span>
+                </div>
+            </div>
+
+            <!-- Quick Link to Progress Trends -->
+            <a href="{% url 'bmi_progress' %}"
+               class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-300 hover:text-white px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition-colors">
+                <svg class="w-3.5 h-3.5 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/>
+                </svg>
+                <span>View Full Trends & Charts</span>
+            </a>
+        </div>
+
+        <!-- Visual BMI Reference Range Bar -->
+        <div class="mt-6 pt-5 border-t border-white/[0.06] space-y-2">
+            <div class="flex items-center justify-between text-[11px] font-medium text-slate-400">
+                <span>Underweight (&lt;18.5)</span>
+                <span>Normal (18.5–24.9)</span>
+                <span>Overweight (25–29.9)</span>
+                <span>Obese (&ge;30)</span>
+            </div>
+            <div class="grid grid-cols-4 h-2 rounded-full overflow-hidden gap-1 bg-slate-950/80 p-0.5 border border-white/10">
+                <div class="bg-sky-400/80 rounded-l-full" title="Underweight"></div>
+                <div class="bg-emerald-400" title="Normal"></div>
+                <div class="bg-amber-400/80" title="Overweight"></div>
+                <div class="bg-rose-400/80 rounded-r-full" title="Obese"></div>
+            </div>
+        </div>
     </div>
     {% endif %}
 
+    <!-- ========== TAILORED WORKOUT PLAN RECOMMENDATION ========== -->
     {% if recommendation %}
-    <div class="bg-dark-card border border-primary/30 rounded-2xl p-6">
-        <h3 class="font-display text-lg font-semibold text-black mb-1">{{ recommendation.plan_name }}</h3>
-        <p class="text-black-400 text-sm mb-4">{{ recommendation.description }}</p>
-        <a href="{% url 'apply_recommended_plan' %}"
-           class="inline-block bg-primary hover:bg-primary-hover text-black text-sm font-medium px-5 py-2.5 rounded-xl transition-colors">
-            Apply This Plan to My Workout
-        </a>
+    <div class="relative overflow-hidden bg-slate-900/90 backdrop-blur-xl border border-emerald-500/40 rounded-2xl p-6 sm:p-7 shadow-xl shadow-emerald-950/20">
+        <!-- Top accent gradient -->
+        <div class="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-emerald-400 via-teal-400 to-cyan-400"></div>
+
+        <div class="flex items-start gap-4">
+            <div class="w-12 h-12 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 flex items-center justify-center text-xl flex-shrink-0">
+                🏋️‍♂️
+            </div>
+            <div class="space-y-1.5 flex-1">
+                <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                    Recommended Routine
+                </div>
+                <h3 class="text-lg sm:text-xl font-bold text-white tracking-tight">
+                    {{ recommendation.plan_name }}
+                </h3>
+                <p class="text-slate-300 text-xs sm:text-sm leading-relaxed pt-0.5">
+                    {{ recommendation.description }}
+                </p>
+            </div>
+        </div>
+
+        <div class="mt-6 pt-5 border-t border-white/[0.08] flex flex-col sm:flex-row items-center justify-between gap-3">
+            <a href="{% url 'apply_recommended_plan' %}"
+               class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-xs sm:text-sm font-bold text-slate-950 bg-gradient-to-r from-emerald-400 to-teal-400 hover:from-emerald-300 hover:to-teal-300 shadow-lg shadow-emerald-950/40 active:scale-95 transition-all">
+                <svg class="w-4 h-4 text-slate-950" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                </svg>
+                <span>Apply This Plan to My Routine</span>
+            </a>
+
+            <a href="{% url 'workout_plan' %}"
+               class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-400 hover:text-white hover:bg-white/5 transition-all">
+                <span>View Existing Plan</span>
+            </a>
+        </div>
     </div>
     {% endif %}
 

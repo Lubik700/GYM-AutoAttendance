@@ -33,7 +33,7 @@
         </nav>
         <div class="p-4 border-t border-white/5">
             <!-- <a href="{% url 'logout' %}" class="text-sm text-gray-400 hover:text-primary">Logout</a> -->
-            <a href="{% url 'logout' %}" class="bg-primary hover:bg-red-600 text-white text-sm font-medium px-4 py-2.5 rounded-xl transition-colors">
+            <a href="{% url 'logout' %}" class="bg-primary hover:bg-red -600 text-white text-sm font-medium px-4 py-2.5 rounded-xl transition-colors">
        Logout
     </a>
         </div>
@@ -45,7 +45,7 @@
             {% for message in messages %}
                 <div class="mb-5 px-4 py-3 rounded-lg text-sm
                     {% if message.tags == 'error' %}bg-red-500/15 text-red-400 border border-red-500/30
-                    {% else %}bg-success/15 text-green-400 border border-success/30{% endif %}">
+                    {% else %}bg-success/15 text-red-400 border border-success/30{% endif %}">
                     {{ message }}
                 </div>
             {% endfor %}

@@ -1,162 +1,424 @@
 {% extends 'app/base.html' %}
-{% block title %}Home | FitTrack{% endblock %}
+{% block title %}Dashboard | FitTrack{% endblock %}
 
 {% block content %}
-<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
+<div class="w-full max-w-5xl mx-auto space-y-6 pb-6">
 
-    <div class="mb-6">
-        <h1 class="font-display text-2xl sm:text-3xl font-bold text-black tracking-tight">
-            Welcome back, {{ request.user.profile.name|default:request.user.username }}
-        </h1>
-        <p class="text-black-400 text-sm mt-1">Here's your fitness snapshot for today</p>
-    </div>
-
-    <!-- Stat cards -->
-    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6">
-        <div class="bg-dark-card border border-gray/5 rounded-2xl p-4">
-            <p class="text-xs text-black-500 mb-1">Current BMI</p>
-            {% if latest_bmi %}
-                <p class="text-xl font-display font-bold text-primary">{{ latest_bmi.bmi }}</p>
-                <p class="text-[11px] text-black-500 mt-0.5">
-                    {{ latest_bmi.bmi_category }}
-                    {% if bmi_trend %}
-                        <span class="{% if bmi_trend < 0 %}text-green-400{% else %}text-orange-400{% endif %}">
-                            ({{ bmi_trend }})
-                        </span>
-                    {% endif %}
-                </p>
-            {% else %}
-                <p class="text-sm text-black-500">Not calculated</p>
-            {% endif %}
+    <!-- ========== HEADER GREETING & DATE ========== -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 pt-2">
+        <div>
+            <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold mb-2">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                Daily Fitness Pulse
+            </div>
+            <h1 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+                Welcome back, {{ request.user.profile.name|default:request.user.username }} 👋
+            </h1>
+            <p class="text-slate-400 text-sm mt-0.5">Here is your activity & health snapshot for today.</p>
         </div>
 
-        <div class="bg-dark-card border border-gray/5 rounded-2xl p-4">
-            <p class="text-xs text-black-500 mb-1">Membership</p>
-            {% if sub_status.has_sub %}
-                <p class="text-xl font-display font-bold {% if sub_status.days_left < 0 %}text-red-400{% elif sub_status.days_left <= 5 %}text-orange-400{% else %}text-black{% endif %}">
-                    {% if sub_status.days_left >= 0 %}{{ sub_status.days_left }}d{% else %}Expired{% endif %}
-                </p>
-                <p class="text-[11px] text-black-500 mt-0.5">{{ sub_status.latest.package.name }}</p>
-            {% else %}
-                <p class="text-sm text-black-500">No plan</p>
-            {% endif %}
-        </div>
-
-        <div class="bg-dark-card border border-gray/5 rounded-2xl p-4">
-            <p class="text-xs text-black-500 mb-1">Workout Plan</p>
-            <p class="text-xl font-display font-bold text-black">{{ days_planned }}/7</p>
-            <p class="text-[11px] text-black-500 mt-0.5">days planned</p>
-        </div>
-
-        <div class="bg-dark-card border border-gray/5 rounded-2xl p-4">
-            <p class="text-xs text-black-500 mb-1">Member Since</p>
-            <p class="text-xl font-display font-bold text-black">{{ member_since_days }}</p>
-            <p class="text-[11px] text-black-500 mt-0.5">days</p>
+        <!-- Quick Action / Date Badge -->
+        <div class="hidden sm:flex items-center gap-2 text-xs font-medium text-slate-400 bg-slate-900/80 border border-white/10 px-3 py-2 rounded-xl">
+            <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+            </svg>
+            <span>{{ today_name|default:"Today"|title }}</span>
         </div>
     </div>
 
-    <!-- Subscription banner -->
+    <!-- ========== SUBSCRIPTION STATUS ALERTS ========== -->
     {% if sub_status.has_sub %}
         {% if sub_status.days_left < 0 %}
-            <div class="mb-6 px-5 py-4 rounded-2xl bg-red-500/15 border border-red-500/30 flex items-center justify-between flex-wrap gap-3">
-                <div>
-                    <p class="text-red-400 font-semibold text-sm">Membership Expired</p>
-                    <p class="text-red-300/80 text-xs mt-0.5">Expired {{ sub_status.days_expired }} day{{ sub_status.days_expired|pluralize }} ago.</p>
+            <!-- Expired Banner -->
+            <div class="relative overflow-hidden p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-rose-950/50 via-slate-900/90 to-slate-900 border border-rose-500/30 flex items-center justify-between flex-wrap gap-4 shadow-lg shadow-rose-950/20">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-rose-500/20 text-rose-400 flex items-center justify-center flex-shrink-0 border border-rose-500/30">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-rose-300 font-bold text-sm">Membership Expired</p>
+                        <p class="text-rose-200/70 text-xs mt-0.5">Expired {{ sub_status.days_expired }} day{{ sub_status.days_expired|pluralize }} ago. Renew to keep tracking gym sessions.</p>
+                    </div>
                 </div>
-                <a href="{% url 'membership' %}" class="text-xs bg-red-500 hover:bg-red-600 text-black font-medium px-4 py-2 rounded-xl transition-colors">Renew Now</a>
+                <a href="{% url 'membership' %}" class="inline-flex items-center gap-2 text-xs bg-rose-500 hover:bg-rose-400 text-slate-950 font-bold px-4 py-2.5 rounded-xl shadow-md transition-all active:scale-95">
+                    <span>Renew Now</span>
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                </a>
             </div>
         {% elif sub_status.days_left <= 5 %}
-            <div class="mb-6 px-5 py-4 rounded-2xl bg-warning/15 border border-warning/30 flex items-center justify-between flex-wrap gap-3">
-                <div>
-                    <p class="text-orange-400 font-semibold text-sm">Membership Expiring Soon</p>
-                    <p class="text-orange-300/80 text-xs mt-0.5">{{ sub_status.days_left }} day{{ sub_status.days_left|pluralize }} left.</p>
+            <!-- Expiring Soon Banner -->
+            <div class="relative overflow-hidden p-4 sm:p-5 rounded-2xl bg-gradient-to-r from-amber-950/50 via-slate-900/90 to-slate-900 border border-amber-500/30 flex items-center justify-between flex-wrap gap-4 shadow-lg shadow-amber-950/20">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center flex-shrink-0 border border-amber-500/30">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-amber-300 font-bold text-sm">Membership Expiring Soon</p>
+                        <p class="text-amber-200/70 text-xs mt-0.5">Only {{ sub_status.days_left }} day{{ sub_status.days_left|pluralize }} remaining on your current package.</p>
+                    </div>
                 </div>
-                <a href="{% url 'membership' %}" class="text-xs bg-primary hover:bg-primary-hover text-black font-medium px-4 py-2 rounded-xl transition-colors">Renew</a>
+                <a href="{% url 'membership' %}" class="inline-flex items-center gap-2 text-xs bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold px-4 py-2.5 rounded-xl shadow-md transition-all active:scale-95">
+                    <span>Extend Plan</span>
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                </a>
             </div>
         {% endif %}
     {% else %}
-        <div class="mb-6 px-5 py-4 rounded-2xl bg-primary/15 border border-primary/30">
-            <p class="text-primary font-semibold text-sm">No Active Membership</p>
-            <p class="text-red-100/70 text-xs mt-0.5">Visit the gym to purchase a membership package.</p>
+        <!-- No Active Plan Banner -->
+        <div class="p-4 sm:p-5 rounded-2xl bg-slate-900/80 border border-emerald-500/20 flex items-center justify-between flex-wrap gap-4 shadow-lg">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center flex-shrink-0 border border-emerald-500/20">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                    </svg>
+                </div>
+                <div>
+                    <p class="text-emerald-400 font-bold text-sm">No Active Membership</p>
+                    <p class="text-slate-400 text-xs mt-0.5">Visit the gym or choose a membership package to unlock all amenities.</p>
+                </div>
+            </div>
+            <a href="{% url 'membership' %}" class="text-xs bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-bold px-4 py-2.5 rounded-xl transition-all shadow-md active:scale-95">
+                Explore Packages
+            </a>
         </div>
     {% endif %}
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+    <!-- ========== 4 KEY STAT METRIC CARDS ========== -->
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
 
-        <!-- Today's workout -->
-        <div class="bg-dark-card border border-gray/5 rounded-2xl p-6">
-            <h2 class="font-display text-lg font-semibold text-black mb-4">Today's Workout — {{ today_name|title }}</h2>
-            {% if today_workout %}
-                {% if today_workout.is_rest_day %}
-                    <p class="text-sm text-black-500 italic">Rest day. Recovery is part of progress too.</p>
-                {% else %}
-                    {% if today_workout.focus %}<p class="text-xs text-black-500 mb-3">{{ today_workout.focus }}</p>{% endif %}
-                    <div class="space-y-2">
-                        {% for ex in today_workout.exercises.all %}
-                        <div class="flex items-center justify-between bg-dark-bg rounded-xl px-4 py-2.5">
-                            <span class="text-sm text-black">{{ ex.name }}</span>
-                            <span class="text-xs text-black-500">
-                                {% if ex.sets %}{{ ex.sets }} sets{% endif %}{% if ex.reps %} × {{ ex.reps }}{% endif %}
-                            </span>
-                        </div>
-                        {% empty %}
-                        <p class="text-sm text-black-500">No exercises added for today yet.</p>
-                        {% endfor %}
-                    </div>
-                {% endif %}
-                <a href="{% url 'workout_plan' %}" class="inline-block mt-4 text-xs text-primary hover:text-red-400">Manage full plan →</a>
-            {% elif has_plan %}
-                <p class="text-sm text-black-500">No workout scheduled for today.</p>
-                <a href="{% url 'workout_plan' %}" class="inline-block mt-3 text-xs text-primary hover:text-red-400">Add a day →</a>
-            {% else %}
-                <p class="text-sm text-black-500 mb-4">You haven't created a workout plan yet.</p>
-                <div class="flex gap-2">
-                    <a href="{% url 'bmi_calculator' %}" class="text-xs bg-primary hover:bg-primary-hover text-black font-medium px-4 py-2 rounded-xl transition-colors">Get a Recommendation</a>
-                    <a href="{% url 'workout_plan' %}" class="text-xs bg-dark-bg border border-gray/10 text-black-300 hover:text-black font-medium px-4 py-2 rounded-xl transition-colors">Build My Own</a>
+        <!-- Card 1: BMI -->
+        <div class="bg-slate-900/80 backdrop-blur-xl border border-white/[0.08] hover:border-emerald-500/30 rounded-2xl p-4 sm:p-5 transition-all duration-300 hover:-translate-y-0.5 shadow-lg group">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Current BMI</span>
+                <div class="w-7 h-7 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"/>
+                    </svg>
                 </div>
+            </div>
+            {% if latest_bmi %}
+                <div class="flex items-baseline gap-2">
+                    <p class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">{{ latest_bmi.bmi }}</p>
+                    {% if bmi_trend %}
+                        <span class="text-xs font-bold inline-flex items-center {% if bmi_trend < 0 %}text-emerald-400{% else %}text-amber-400{% endif %}">
+                            {% if bmi_trend < 0 %}↓{% else %}↑{% endif %} {{ bmi_trend|cut:"-" }}
+                        </span>
+                    {% endif %}
+                </div>
+                <div class="flex items-center gap-1.5 mt-1">
+                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                    <p class="text-xs font-medium text-slate-300 truncate">{{ latest_bmi.bmi_category }}</p>
+                </div>
+            {% else %}
+                <p class="text-lg font-bold text-slate-400">--</p>
+                <p class="text-xs text-slate-500 mt-1">Not calculated yet</p>
             {% endif %}
         </div>
 
-        <!-- BMI trend -->
-        <div class="bg-dark-card border border-gray/5 rounded-2xl p-6">
-            <h2 class="font-display text-lg font-semibold text-black mb-4">BMI Trend</h2>
-            {% if latest_bmi %}
-                <div class="text-center py-4">
-                    <p class="text-4xl font-display font-bold text-primary">{{ latest_bmi.bmi }}</p>
-                    <p class="text-sm text-black-400 mt-1">{{ latest_bmi.bmi_category }}</p>
-                    {% if bmi_trend %}
-                        <p class="text-xs mt-2 {% if bmi_trend < 0 %}text-green-400{% else %}text-orange-400{% endif %}">
-                            {% if bmi_trend < 0 %}↓{% else %}↑{% endif %} {{ bmi_trend }} since last check
-                        </p>
-                    {% endif %}
+        <!-- Card 2: Membership -->
+        <div class="bg-slate-900/80 backdrop-blur-xl border border-white/[0.08] hover:border-emerald-500/30 rounded-2xl p-4 sm:p-5 transition-all duration-300 hover:-translate-y-0.5 shadow-lg group">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Membership</span>
+                <div class="w-7 h-7 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z"/>
+                    </svg>
                 </div>
-                <a href="{% url 'bmi_progress' %}" class="inline-block text-xs text-primary hover:text-red-400">View full progress →</a>
+            </div>
+            {% if sub_status.has_sub %}
+                <p class="text-2xl sm:text-3xl font-extrabold tracking-tight {% if sub_status.days_left < 0 %}text-rose-400{% elif sub_status.days_left <= 5 %}text-amber-400{% else %}text-emerald-400{% endif %}">
+                    {% if sub_status.days_left >= 0 %}
+                        {{ sub_status.days_left }}<span class="text-sm font-semibold text-slate-400"> days left</span>
+                    {% else %}
+                        Expired
+                    {% endif %}
+                </p>
+                <p class="text-xs font-medium text-slate-400 truncate mt-1">{{ sub_status.latest.package.name }}</p>
             {% else %}
-                <p class="text-sm text-black-500 mb-4">Log your first BMI entry to start tracking progress.</p>
-                <a href="{% url 'bmi_calculator' %}" class="inline-block text-xs bg-primary hover:bg-primary-hover text-black font-medium px-4 py-2 rounded-xl transition-colors">Calculate BMI</a>
+                <p class="text-lg font-bold text-slate-400">Free Tier</p>
+                <p class="text-xs text-slate-500 mt-1">No active plan</p>
             {% endif %}
+        </div>
+
+        <!-- Card 3: Workout Plan -->
+        <div class="bg-slate-900/80 backdrop-blur-xl border border-white/[0.08] hover:border-emerald-500/30 rounded-2xl p-4 sm:p-5 transition-all duration-300 hover:-translate-y-0.5 shadow-lg group">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Weekly Plan</span>
+                <div class="w-7 h-7 rounded-lg bg-teal-500/10 text-teal-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/>
+                    </svg>
+                </div>
+            </div>
+            <div class="flex items-baseline gap-1">
+                <p class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">{{ days_planned }}</p>
+                <span class="text-slate-400 text-sm font-semibold">/ 7 days</span>
+            </div>
+            <!-- Progress Bar -->
+            <div class="w-full bg-white/10 rounded-full h-1.5 mt-2 overflow-hidden">
+                <div class="bg-gradient-to-r from-emerald-500 to-teal-400 h-1.5 rounded-full" style="width: {% widthratio days_planned 7 100 %}%;"></div>
+            </div>
+        </div>
+
+        <!-- Card 4: Member Since -->
+        <div class="bg-slate-900/80 backdrop-blur-xl border border-white/[0.08] hover:border-emerald-500/30 rounded-2xl p-4 sm:p-5 transition-all duration-300 hover:-translate-y-0.5 shadow-lg group">
+            <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Streak & Tenacity</span>
+                <div class="w-7 h-7 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z"/>
+                    </svg>
+                </div>
+            </div>
+            <div class="flex items-baseline gap-1">
+                <p class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">{{ member_since_days }}</p>
+                <span class="text-slate-400 text-sm font-semibold">days</span>
+            </div>
+            <p class="text-xs font-medium text-emerald-400 mt-1 flex items-center gap-1">
+                <span>🔥</span> Active Athlete
+            </p>
         </div>
     </div>
 
-    <!-- Notices -->
-    {% if important_notices %}
-    <div class="mb-6">
-        <div class="flex items-center justify-between mb-4">
-            <h2 class="font-display text-lg font-semibold text-black">Important Notices</h2>
-            <a href="{% url 'notices' %}" class="text-xs text-black-400 hover:text-primary">View all →</a>
+    <!-- ========== TWO-COLUMN: TODAY'S WORKOUT & BMI TREND ========== -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+        <!-- Column 1: Today's Workout -->
+        <div class="bg-slate-900/80 backdrop-blur-xl border border-white/[0.08] rounded-2xl p-5 sm:p-6 flex flex-col justify-between shadow-xl">
+            <div>
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center border border-emerald-500/20">
+                            <!-- Dumbbell / Weight Icon -->
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10M20 7v10M8 5v14M16 5v14M8 12h8"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h2 class="text-base sm:text-lg font-bold text-white tracking-tight">Today's Workout</h2>
+                            <p class="text-xs text-slate-400">{{ today_name|default:"Today"|title }}</p>
+                        </div>
+                    </div>
+
+                    {% if today_workout and not today_workout.is_rest_day %}
+                        <span class="px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                            Active Session
+                        </span>
+                    {% endif %}
+                </div>
+
+                {% if today_workout %}
+                    {% if today_workout.is_rest_day %}
+                        <!-- Rest Day Card -->
+                        <div class="my-6 p-6 rounded-2xl bg-gradient-to-b from-white/[0.03] to-transparent border border-white/5 text-center space-y-2">
+                            <div class="w-12 h-12 mx-auto rounded-full bg-teal-500/10 text-teal-400 flex items-center justify-center text-xl">
+                                🧘
+                            </div>
+                            <p class="text-base font-bold text-white">Scheduled Rest & Recovery</p>
+                            <p class="text-xs text-slate-400 max-w-xs mx-auto">
+                                Muscles grow during downtime. Stay hydrated, do light stretching, and get quality sleep!
+                            </p>
+                        </div>
+                    {% else %}
+                        <!-- Target Focus Tag -->
+                        {% if today_workout.focus %}
+                            <div class="mb-3.5 flex items-center gap-2">
+                                <span class="text-xs text-slate-400 font-medium">Focus Area:</span>
+                                <span class="text-xs font-semibold text-emerald-300 bg-emerald-500/10 px-2 py-0.5 rounded-md border border-emerald-500/20">
+                                    {{ today_workout.focus }}
+                                </span>
+                            </div>
+                        {% endif %}
+
+                        <!-- Exercise List -->
+                        <div class="space-y-2 max-h-64 overflow-y-auto pr-1">
+                            {% for ex in today_workout.exercises.all %}
+                                <div class="flex items-center justify-between bg-white/[0.03] hover:bg-white/[0.06] border border-white/[0.05] rounded-xl px-4 py-3 transition-colors">
+                                    <div class="flex items-center gap-3">
+                                        <span class="w-6 h-6 rounded-full bg-slate-800 text-slate-300 text-xs font-bold flex items-center justify-center border border-white/10">
+                                            {{ forloop.counter }}
+                                        </span>
+                                        <span class="text-sm font-semibold text-white">{{ ex.name }}</span>
+                                    </div>
+                                    <div class="text-xs font-medium text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-lg border border-emerald-500/20">
+                                        {% if ex.sets %}{{ ex.sets }} sets{% endif %}
+                                        {% if ex.reps %} × {{ ex.reps }} reps{% endif %}
+                                    </div>
+                                </div>
+                            {% empty %}
+                                <div class="py-6 text-center text-slate-400 text-xs border border-dashed border-white/10 rounded-xl">
+                                    No exercises logged for today yet.
+                                </div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                {% elif has_plan %}
+                    <div class="py-8 text-center text-slate-400 text-xs border border-dashed border-white/10 rounded-xl my-4">
+                        <p class="text-sm font-semibold text-slate-300">No workout assigned for {{ today_name|title }}</p>
+                        <p class="text-xs text-slate-500 mt-1">Want to train? Add an exercise or swap your split.</p>
+                    </div>
+                {% else %}
+                    <!-- No Plan Created Yet -->
+                    <div class="py-6 px-4 text-center my-3 bg-white/[0.02] border border-white/5 rounded-2xl">
+                        <div class="w-10 h-10 mx-auto rounded-full bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-lg mb-2">
+                            📋
+                        </div>
+                        <p class="text-sm font-bold text-white">No Workout Plan Set Up</p>
+                        <p class="text-xs text-slate-400 max-w-xs mx-auto mt-1 mb-4">
+                            Structure your weekly split to start tracking sets, reps, and PR progress.
+                        </p>
+                        <div class="flex flex-col sm:flex-row items-center justify-center gap-2">
+                            <a href="{% url 'bmi_calculator' %}" class="w-full sm:w-auto text-xs bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-bold px-4 py-2.5 rounded-xl transition-all shadow-md">
+                                Get Recommended Plan
+                            </a>
+                            <a href="{% url 'workout_plan' %}" class="w-full sm:w-auto text-xs bg-white/5 hover:bg-white/10 text-white font-semibold px-4 py-2.5 rounded-xl border border-white/10 transition-colors">
+                                Build Custom Plan
+                            </a>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Card Bottom Navigation Link -->
+            <div class="pt-4 mt-4 border-t border-white/[0.06]">
+                <a href="{% url 'workout_plan' %}" class="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-400 hover:text-emerald-300 transition-colors group">
+                    <span>Manage Full Workout Schedule</span>
+                    <svg class="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                </a>
+            </div>
         </div>
+
+        <!-- Column 2: BMI Trend & Gauge -->
+        <div class="bg-slate-900/80 backdrop-blur-xl border border-white/[0.08] rounded-2xl p-5 sm:p-6 flex flex-col justify-between shadow-xl">
+            <div>
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-8 h-8 rounded-xl bg-teal-500/10 text-teal-400 flex items-center justify-center border border-teal-500/20">
+                            <!-- Activity / Pulse Chart Icon -->
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                            </svg>
+                        </div>
+                        <div>
+                            <h2 class="text-base sm:text-lg font-bold text-white tracking-tight">BMI & Body Composition</h2>
+                            <p class="text-xs text-slate-400">Trend & Historical Shifts</p>
+                        </div>
+                    </div>
+
+                    {% if latest_bmi %}
+                        <span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-white/5 text-slate-300 border border-white/10">
+                            Latest Metric
+                        </span>
+                    {% endif %}
+                </div>
+
+                {% if latest_bmi %}
+                    <div class="my-4 p-5 rounded-2xl bg-gradient-to-b from-white/[0.03] to-transparent border border-white/5 text-center">
+                        <span class="text-xs uppercase font-bold tracking-widest text-slate-400">Calculated Score</span>
+                        <div class="flex items-center justify-center gap-3 mt-1">
+                            <p class="text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-teal-300 to-emerald-200 tracking-tight">
+                                {{ latest_bmi.bmi }}
+                            </p>
+                        </div>
+                        <p class="text-sm font-semibold text-white mt-1">{{ latest_bmi.bmi_category }}</p>
+
+                        {% if bmi_trend %}
+                            <div class="inline-flex items-center gap-1.5 mt-3 px-3 py-1 rounded-full text-xs font-bold {% if bmi_trend < 0 %}text-emerald-400 bg-emerald-500/10 border border-emerald-500/20{% else %}text-amber-400 bg-amber-500/10 border border-amber-500/20{% endif %}">
+                                <span>{% if bmi_trend < 0 %}↓{% else %}↑{% endif %}</span>
+                                <span>{{ bmi_trend|cut:"-" }} change since last check</span>
+                            </div>
+                        {% endif %}
+
+                        <!-- Mini segmented scale illustration -->
+                        <div class="mt-5 space-y-1.5">
+                            <div class="grid grid-cols-4 gap-1.5 h-2 rounded-full overflow-hidden bg-slate-800">
+                                <div class="bg-sky-400/80" title="Underweight (< 18.5)"></div>
+                                <div class="bg-emerald-400" title="Normal (18.5 - 24.9)"></div>
+                                <div class="bg-amber-400/80" title="Overweight (25 - 29.9)"></div>
+                                <div class="bg-rose-400/80" title="Obese (≥ 30)"></div>
+                            </div>
+                            <div class="flex justify-between text-[10px] text-slate-500 font-medium px-0.5">
+                                <span>Under</span>
+                                <span>Optimal</span>
+                                <span>Over</span>
+                                <span>Obese</span>
+                            </div>
+                        </div>
+                    </div>
+                {% else %}
+                    <!-- Empty State -->
+                    <div class="py-8 px-4 text-center my-3 bg-white/[0.02] border border-white/5 rounded-2xl">
+                        <div class="w-10 h-10 mx-auto rounded-full bg-teal-500/10 text-teal-400 flex items-center justify-center text-lg mb-2">
+                            ⚖️
+                        </div>
+                        <p class="text-sm font-bold text-white">No BMI History Yet</p>
+                        <p class="text-xs text-slate-400 max-w-xs mx-auto mt-1 mb-4">
+                            Log your height and weight to track your body metrics and unlock personalized workout goals.
+                        </p>
+                        <a href="{% url 'bmi_calculator' %}" class="inline-flex items-center gap-2 text-xs bg-emerald-400 hover:bg-emerald-300 text-slate-950 font-bold px-4 py-2.5 rounded-xl transition-all shadow-md active:scale-95">
+                            <span>Calculate Your BMI</span>
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Card Bottom Link -->
+            <div class="pt-4 mt-4 border-t border-white/[0.06]">
+                {% if latest_bmi %}
+                    <a href="{% url 'bmi_progress' %}" class="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-400 hover:text-emerald-300 transition-colors group">
+                        <span>View Full Progress & Body Log</span>
+                        <svg class="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                    </a>
+                {% else %}
+                    <a href="{% url 'bmi_calculator' %}" class="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-400 hover:text-emerald-300 transition-colors group">
+                        <span>Open BMI Calculator</span>
+                        <svg class="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== IMPORTANT NOTICES ACCORDION / FEED ========== -->
+    {% if important_notices %}
+    <div class="bg-slate-900/80 backdrop-blur-xl border border-white/[0.08] rounded-2xl p-5 sm:p-6 shadow-xl">
+        <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center border border-amber-500/20">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/>
+                    </svg>
+                </div>
+                <div>
+                    <h2 class="text-base sm:text-lg font-bold text-white tracking-tight">Important Gym Notices</h2>
+                    <p class="text-xs text-slate-400">Updates from trainers & staff</p>
+                </div>
+            </div>
+            <a href="{% url 'notices' %}" class="text-xs font-semibold text-emerald-400 hover:text-emerald-300 transition-colors">
+                View all →
+            </a>
+        </div>
+
         <div class="space-y-3">
             {% for notice in important_notices %}
-            <div class="bg-dark-card border border-gray/5 rounded-xl p-4">
-                <h3 class="text-sm font-medium text-black">{{ notice.title }}</h3>
-                <p class="text-xs text-black-400 mt-1">{{ notice.description|truncatewords:20 }}</p>
+            <div class="p-4 rounded-xl bg-white/[0.02] hover:bg-white/[0.05] border border-white/5 transition-all">
+                <div class="flex items-start justify-between gap-3">
+                    <div class="min-w-0">
+                        <h3 class="text-sm font-bold text-white truncate">{{ notice.title }}</h3>
+                        <p class="text-xs text-slate-400 mt-1 leading-relaxed">{{ notice.description|truncatewords:20 }}</p>
+                    </div>
+                    <span class="flex-shrink-0 text-[10px] font-semibold text-slate-400 bg-white/5 px-2 py-1 rounded-md">Notice</span>
+                </div>
             </div>
             {% endfor %}
         </div>
     </div>
     {% endif %}
-
-  
 
 </div>
 {% endblock %}

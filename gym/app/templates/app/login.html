@@ -1,252 +1,821 @@
 {% load static %}
+
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login | FitTrack</title>
+
+    <title>Sign In | FitTrack</title>
 
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- Google Fonts - Poppins & Inter -->
+    <!-- Google Fonts - Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
 
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet"
+    >
+
+    <!-- Tailwind Configuration -->
     <script>
         tailwind.config = {
+            darkMode: 'class',
+
             theme: {
                 extend: {
-                    colors: {
-                        dark: {
-                            bg: '#121212',
-                            sidebar: '#1E1E1E',
-                            card: '#2A2A2A',
-                            secondary: '#424242',
-                        },
-                        primary: '#E53935',
-                        success: '#43A047',
-                        warning: '#FB8C00',
-                    },
                     fontFamily: {
-                        sans: ['Inter', 'system-ui', 'sans-serif'],
-                        display: ['Poppins', 'system-ui', 'sans-serif'],
+                        sans: [
+                            'Inter',
+                            'system-ui',
+                            '-apple-system',
+                            'sans-serif'
+                        ],
+                    },
+
+                    colors: {
+                        slate: {
+                            850: '#0F172A',
+                            900: '#0B1120',
+                            950: '#060913',
+                        }
                     }
                 }
             }
-        }
+        };
     </script>
-    <link rel="stylesheet" href="{% static 'app/styles.css' %}">
-   
-</head>
-<body class="bg-dark-bg min-h-screen flex items-center justify-center p-4">
 
-    <!-- Background accent glow -->
-    <div class="fixed inset-0 overflow-hidden pointer-events-none">
-        <div class="absolute -top-40 -right-40 w-96 h-96 bg-primary/10 rounded-full blur-3xl"></div>
-        <div class="absolute -bottom-40 -left-40 w-96 h-96 bg-primary/5 rounded-full blur-3xl"></div>
+    <!-- Custom Styles -->
+    <link
+        rel="stylesheet"
+        href="{% static 'app/styles.css' %}"
+    >
+</head>
+
+
+<body
+    class="bg-slate-950 text-slate-100 min-h-screen
+           flex items-center justify-center
+           p-4 sm:p-6 antialiased
+           selection:bg-emerald-500
+           selection:text-slate-950
+           relative overflow-x-hidden"
+>
+
+    <!-- =========================================================
+         AMBIENT BACKGROUND GLOW EFFECTS
+    ========================================================== -->
+    <div class="fixed inset-0 overflow-hidden pointer-events-none z-0">
+
+        <div
+            class="absolute -top-32 -right-32
+                   w-96 h-96
+                   bg-emerald-500/10
+                   rounded-full blur-[100px]"
+        ></div>
+
+        <div
+            class="absolute -bottom-32 -left-32
+                   w-96 h-96
+                   bg-teal-500/10
+                   rounded-full blur-[100px]"
+        ></div>
+
+        <div
+            class="absolute top-1/2 left-1/2
+                   -translate-x-1/2
+                   -translate-y-1/2
+                   w-[600px] h-[600px]
+                   bg-emerald-500/[0.03]
+                   rounded-full blur-[140px]"
+        ></div>
+
     </div>
 
-    <div class="w-full max-w-md relative z-10">
 
-        <!-- Logo / Brand -->
-        <div class="text-center mb-8">
-            <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-primary/20 mb-4">
-                <svg class="w-9 h-9 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M13 10V3L4 14h7v7l9-11h-7z"/>
-                </svg>
-            </div>
-            <h1 class="font-display text-3xl font-bold text-white tracking-tight">FitTrack</h1>
-            <p class="text-gray-400 mt-1 text-sm">Push your limits. Track your progress.</p>
+    <!-- =========================================================
+         MAIN AUTH CONTAINER
+    ========================================================== -->
+    <div class="w-full max-w-md relative z-10 py-6 sm:py-10">
+
+
+        <!-- =====================================================
+             BRAND / HEADER
+        ====================================================== -->
+        <div class="text-center mb-7">
+
+            <!-- Athletic Lightning Bolt Emblem -->
+            <a
+                href="/"
+                class="inline-flex items-center justify-center
+                       mb-3 group focus:outline-none"
+            >
+                <div
+                    class="w-14 h-14 rounded-2xl
+                           bg-gradient-to-tr
+                           from-emerald-500/20
+                           via-emerald-400/10
+                           to-teal-500/20
+                           border border-emerald-500/30
+                           group-hover:border-emerald-400/60
+                           shadow-lg shadow-emerald-950/60
+                           flex items-center justify-center
+                           transition-all duration-300
+                           group-hover:scale-105"
+                >
+                    <svg
+                        class="w-7 h-7 text-emerald-400
+                               group-hover:text-emerald-300
+                               transition-colors"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2.5"
+                            d="M13 10V3L4 14h7v7l9-11h-7z"
+                        />
+                    </svg>
+                </div>
+            </a>
+
+            <h1
+                class="text-2xl sm:text-3xl
+                       font-extrabold text-white
+                       tracking-tight"
+            >
+                Fit<span
+                    class="text-transparent
+                           bg-clip-text
+                           bg-gradient-to-r
+                           from-emerald-400
+                           to-teal-400"
+                >Track</span>
+            </h1>
+
+            <p class="text-xs sm:text-sm text-slate-400 mt-1">
+                Push your limits. Track your daily milestones.
+            </p>
+
         </div>
 
-        <!-- Login Card -->
-        <div class="bg-dark-card rounded-2xl shadow-2xl border border-white/5 p-8">
 
-            <h2 class="font-display text-xl font-semibold text-white mb-1">Welcome back</h2>
-            <p class="text-gray-400 text-sm mb-6">Sign in to continue your fitness journey</p>
+        <!-- =====================================================
+             GLASSMORPHIC LOGIN CARD
+        ====================================================== -->
+        <div
+            class="relative overflow-hidden
+                   bg-slate-900/85
+                   backdrop-blur-xl
+                   border border-white/[0.08]
+                   rounded-2xl
+                   p-6 sm:p-8
+                   shadow-2xl shadow-black/80"
+        >
 
-            <!-- Django messages (errors / success) -->
+            <!-- Top glowing accent stripe -->
+            <div
+                class="absolute top-0 inset-x-0 h-1
+                       bg-gradient-to-r
+                       from-emerald-500
+                       via-teal-400
+                       to-emerald-300"
+            ></div>
+
+
+            <!-- =================================================
+                 LOGIN HEADER
+            ================================================== -->
+            <div class="mb-6">
+
+                <h2
+                    class="text-xl font-bold
+                           text-white tracking-tight"
+                >
+                    Welcome Back
+                </h2>
+
+                <p class="text-xs sm:text-sm text-slate-400 mt-0.5">
+                    Sign in to continue your workout schedule
+                </p>
+
+            </div>
+
+
+            <!-- =================================================
+                 DJANGO FLASH MESSAGES
+            ================================================== -->
             {% if messages %}
-                {% for message in messages %}
-                    <div class="mb-4 px-4 py-3 rounded-lg text-sm
-                        {% if message.tags == 'error' %}bg-red-500/15 text-red-400 border border-red-500/30
-                        {% elif message.tags == 'success' %}bg-success/15 text-green-400 border border-success/30
-                        {% else %}bg-white/5 text-gray-300 border border-white/10{% endif %}">
-                        {{ message }}
-                    </div>
-                {% endfor %}
-            {% endif %}
 
-            <!-- Non-field errors from form -->
-            {% if form.non_field_errors %}
-                <div class="mb-4 px-4 py-3 rounded-lg text-sm bg-red-500/15 text-red-400 border border-red-500/30">
-                    {% for error in form.non_field_errors %}
-                        <p>{{ error }}</p>
+                <div class="space-y-2.5 mb-5">
+
+                    {% for message in messages %}
+
+                        <div
+                            class="flex items-center gap-2.5
+                                   px-3.5 py-3
+                                   rounded-xl
+                                   text-xs sm:text-sm
+                                   font-medium
+                                   shadow-sm
+                                   transition-all
+
+                                   {% if message.tags == 'error' %}
+                                       bg-rose-500/10
+                                       text-rose-300
+                                       border border-rose-500/30
+
+                                   {% elif message.tags == 'success' %}
+                                       bg-emerald-500/10
+                                       text-emerald-300
+                                       border border-emerald-500/30
+
+                                   {% else %}
+                                       bg-white/5
+                                       text-slate-300
+                                       border border-white/10
+                                   {% endif %}"
+                        >
+
+                            {% if message.tags == 'error' %}
+
+                                <svg
+                                    class="w-4 h-4 text-rose-400 flex-shrink-0"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M12 8v4m0 4h.01
+                                           M21 12a9 9 0 11-18 0
+                                           9 9 0 0118 0z"
+                                    />
+                                </svg>
+
+                            {% elif message.tags == 'success' %}
+
+                                <svg
+                                    class="w-4 h-4 text-emerald-400 flex-shrink-0"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M9 12l2 2 4-4
+                                           m6 2a9 9 0 11-18 0
+                                           9 9 0 0118 0z"
+                                    />
+                                </svg>
+
+                            {% endif %}
+
+                            <span class="flex-1">
+                                {{ message }}
+                            </span>
+
+                        </div>
+
                     {% endfor %}
+
                 </div>
+
             {% endif %}
 
-            <form method="post" action="{% url 'login' %}" class="space-y-5" novalidate>
+
+            <!-- =================================================
+                 NON-FIELD FORM ERRORS
+            ================================================== -->
+            {% if form.non_field_errors %}
+
+                <div
+                    class="mb-5 px-3.5 py-3
+                           rounded-xl text-xs sm:text-sm
+                           bg-rose-500/10
+                           text-rose-300
+                           border border-rose-500/30
+                           flex items-start gap-2.5"
+                >
+
+                    <svg
+                        class="w-4 h-4 text-rose-400
+                               flex-shrink-0 mt-0.5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M12 8v4m0 4h.01
+                               M21 12a9 9 0 11-18 0
+                               9 9 0 0118 0z"
+                        />
+                    </svg>
+
+                    <div class="space-y-1">
+
+                        {% for error in form.non_field_errors %}
+                            <p>{{ error }}</p>
+                        {% endfor %}
+
+                    </div>
+
+                </div>
+
+            {% endif %}
+
+
+            <!-- =================================================
+                 LOGIN FORM
+            ================================================== -->
+            <form
+                method="post"
+                action="{% url 'login' %}"
+                class="space-y-5"
+                novalidate
+            >
+
                 {% csrf_token %}
 
-                <!-- Username / Email -->
+
+                <!-- =================================================
+                     USERNAME / EMAIL FIELD
+                ================================================== -->
                 <div>
-                    <label for="id_username" class="block text-sm font-medium text-gray-300 mb-1.5">
+
+                    <label
+                        for="id_username"
+                        class="block text-xs font-semibold
+                               text-slate-300
+                               uppercase tracking-wider mb-2"
+                    >
                         Username or Email
                     </label>
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                            <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
-                                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+
+                    <div class="relative group">
+
+                        <!-- Left Icon -->
+                        <div
+                            class="absolute inset-y-0 left-0
+                                   pl-3.5 flex items-center
+                                   pointer-events-none
+                                   text-slate-500
+                                   group-focus-within:text-emerald-400
+                                   transition-colors z-10"
+                        >
+                            <svg
+                                class="w-4 h-4"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M16 7a4 4 0 11-8 0
+                                       4 4 0 018 0z
+                                       M12 14a7 7 0 00-7 7h14
+                                       a7 7 0 00-7-7z"
+                                />
                             </svg>
                         </div>
-                        <!-- <input type="text"
-                               name="username"
-                               id="id_username"
-                               value="{{ form.username.value|default:'' }}"
-                               autofocus
-                               required
-                               autocomplete="username"
-                               class="w-full bg-dark-bg border border-dark-secondary text-white rounded-xl
-                                      pl-11 pr-4 py-3 text-sm
-                                      placeholder-gray-500
-                                      focus-primary transition-all duration-200
-                                      hover:border-gray-500"
-                               placeholder="Enter your username or email"> -->
-                               {{ form.username }}
+
+
+                        <!-- Styled Username Input -->
+                        <div
+                            class="[&>input]:w-full
+                                   [&>input]:bg-slate-950/70
+                                   [&>input]:border
+                                   [&>input]:border-white/10
+                                   [&>input]:focus:border-emerald-500
+                                   [&>input]:focus:ring-1
+                                   [&>input]:focus:ring-emerald-500
+                                   [&>input]:text-white
+                                   [&>input]:placeholder-slate-500
+                                   [&>input]:text-sm
+                                   [&>input]:rounded-xl
+                                   [&>input]:pl-10
+                                   [&>input]:pr-4
+                                   [&>input]:py-3
+                                   [&>input]:transition-all"
+                        >
+                            {{ form.username }}
+                        </div>
+
                     </div>
+
+
+                    <!-- Username Errors -->
                     {% if form.username.errors %}
-                        <p class="mt-1.5 text-xs text-red-400">{{ form.username.errors.0 }}</p>
+
+                        <p
+                            class="mt-1.5 text-xs text-rose-400
+                                   flex items-center gap-1
+                                   font-medium"
+                        >
+                            <svg
+                                class="w-3.5 h-3.5 flex-shrink-0"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M12 8v4m0 4h.01
+                                       M21 12a9 9 0 11-18 0
+                                       9 9 0 0118 0z"
+                                />
+                            </svg>
+
+                            {{ form.username.errors.0 }}
+                        </p>
+
                     {% endif %}
+
                 </div>
 
-                <!-- Password -->
+
+                <!-- =================================================
+                     PASSWORD FIELD
+                ================================================== -->
                 <div>
-                    <div class="flex items-center justify-between mb-1.5">
-                        <label for="id_password" class="block text-sm font-medium text-gray-300">
+
+                    <div class="flex items-center justify-between mb-2">
+
+                        <label
+                            for="id_password"
+                            class="block text-xs font-semibold
+                                   text-slate-300
+                                   uppercase tracking-wider"
+                        >
                             Password
                         </label>
-                        <a href="{% url 'password_reset' %}" class="text-xs text-primary hover:text-red-400 transition-colors">
+
+                        <a
+                            href="{% url 'password_reset' %}"
+                            class="text-xs font-semibold
+                                   text-emerald-400
+                                   hover:text-emerald-300
+                                   transition-colors"
+                        >
                             Forgot password?
                         </a>
+
                     </div>
-                    <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
-                            <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
-                                      d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+
+
+                    <div class="relative group">
+
+                        <!-- Left Key Icon -->
+                        <div
+                            class="absolute inset-y-0 left-0
+                                   pl-3.5 flex items-center
+                                   pointer-events-none
+                                   text-slate-500
+                                   group-focus-within:text-emerald-400
+                                   transition-colors z-10"
+                        >
+                            <svg
+                                class="w-4 h-4"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M12 15v2m-6 4h12
+                                       a2 2 0 002-2v-6
+                                       a2 2 0 00-2-2H6
+                                       a2 2 0 00-2 2v6
+                                       a2 2 0 002 2zm10-10V7
+                                       a4 4 0 00-8 0v4h8z"
+                                />
                             </svg>
                         </div>
-                        <!-- <input type="password"
-                               name="password"
-                               id="id_password"
-                               required
-                               autocomplete="current-password"
-                               class="w-full bg-dark-bg border border-dark-secondary text-white rounded-xl
-                                      pl-11 pr-12 py-3 text-sm
-                                      placeholder-gray-500
-                                      focus-primary transition-all duration-200
-                                      hover:border-gray-500"
-                               placeholder="Enter your password"> -->
-                               {{ form.password }}
 
-                        <!-- Toggle password visibility -->
-                        <button type="button"
-                                onclick="togglePassword()"
-                                class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-gray-500 hover:text-gray-300 transition-colors">
-                            <svg id="eye-icon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
-                                      d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
-                                      d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+
+                        <!-- Styled Password Input -->
+                        <div
+                            id="passwordWrapper"
+                            class="[&>input]:w-full
+                                   [&>input]:bg-slate-950/70
+                                   [&>input]:border
+                                   [&>input]:border-white/10
+                                   [&>input]:focus:border-emerald-500
+                                   [&>input]:focus:ring-1
+                                   [&>input]:focus:ring-emerald-500
+                                   [&>input]:text-white
+                                   [&>input]:placeholder-slate-500
+                                   [&>input]:text-sm
+                                   [&>input]:rounded-xl
+                                   [&>input]:pl-10
+                                   [&>input]:pr-11
+                                   [&>input]:py-3
+                                   [&>input]:transition-all"
+                        >
+                            {{ form.password }}
+                        </div>
+
+
+                        <!-- Password Visibility Toggle -->
+                        <button
+                            type="button"
+                            id="passwordToggleBtn"
+                            aria-label="Toggle password visibility"
+                            class="absolute inset-y-0 right-0
+                                   pr-3.5 flex items-center
+                                   text-slate-400
+                                   hover:text-white
+                                   transition-colors
+                                   focus:outline-none z-10"
+                        >
+                            <svg
+                                id="eyeIcon"
+                                class="w-4 h-4"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M15 12a3 3 0 11-6 0
+                                       3 3 0 016 0z"
+                                />
+
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M2.458 12C3.732 7.943
+                                       7.523 5 12 5
+                                       c4.478 0 8.268 2.943
+                                       9.542 7
+                                       -1.274 4.057-5.064 7-9.542 7
+                                       -4.477 0-8.268-2.943-9.542-7z"
+                                />
                             </svg>
                         </button>
+
                     </div>
+
+
+                    <!-- Password Errors -->
                     {% if form.password.errors %}
-                        <p class="mt-1.5 text-xs text-red-400">{{ form.password.errors.0 }}</p>
+
+                        <p
+                            class="mt-1.5 text-xs text-rose-400
+                                   flex items-center gap-1
+                                   font-medium"
+                        >
+                            <svg
+                                class="w-3.5 h-3.5 flex-shrink-0"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M12 8v4m0 4h.01
+                                       M21 12a9 9 0 11-18 0
+                                       9 9 0 0118 0z"
+                                />
+                            </svg>
+
+                            {{ form.password.errors.0 }}
+                        </p>
+
                     {% endif %}
+
                 </div>
 
-                <!-- Remember me -->
-                <div class="flex items-center">
-                    <input type="checkbox"
-                           name="remember_me"
-                           id="id_remember_me"
-                           class="w-4 h-4 rounded border-dark-secondary bg-dark-bg text-primary
-                                  focus:ring-primary focus:ring-offset-0 focus:ring-2
-                                  cursor-pointer">
-                    <label for="id_remember_me" class="ml-2.5 text-sm text-gray-400 cursor-pointer select-none">
-                        Remember me for 30 days
+
+                <!-- =================================================
+                     REMEMBER ME
+                ================================================== -->
+                <div class="flex items-center justify-between pt-0.5">
+
+                    <label
+                        class="flex items-center gap-2.5
+                               cursor-pointer select-none group"
+                    >
+                        <input
+                            type="checkbox"
+                            name="remember_me"
+                            id="id_remember_me"
+                            class="w-4 h-4 rounded
+                                   bg-slate-950/80
+                                   border border-white/20
+                                   text-emerald-500
+                                   focus:ring-emerald-500/30
+                                   focus:ring-offset-0
+                                   focus:ring-1
+                                   cursor-pointer
+                                   transition-colors"
+                        >
+
+                        <span
+                            class="text-xs text-slate-300
+                                   group-hover:text-white
+                                   transition-colors"
+                        >
+                            Remember me for 30 days
+                        </span>
                     </label>
+
                 </div>
 
-                <!-- Submit Button -->
-                <button type="submit"
-                        class="w-full bg-primary hover:bg-red-600 active:bg-red-700
-                               text-white font-semibold py-3 px-4 rounded-xl
-                               transition-all duration-200
-                               shadow-lg shadow-primary/25 hover:shadow-primary/40
-                               focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-dark-card
-                               flex items-center justify-center gap-2">
-                    <span>Sign In</span>
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
-                    </svg>
-                </button>
+
+                <!-- =================================================
+                     PRIMARY SUBMIT BUTTON
+                ================================================== -->
+                <div class="pt-2">
+
+                    <button
+                        type="submit"
+                        class="w-full inline-flex
+                               items-center justify-center
+                               gap-2 py-3 px-5
+                               rounded-xl
+                               text-xs sm:text-sm
+                               font-bold text-slate-950
+                               bg-gradient-to-r
+                               from-emerald-400
+                               to-teal-400
+                               hover:from-emerald-300
+                               hover:to-teal-300
+                               shadow-lg shadow-emerald-950/40
+                               hover:shadow-emerald-500/20
+                               active:scale-95
+                               transition-all"
+                    >
+                        <span>
+                            Sign In to Dashboard
+                        </span>
+
+                        <svg
+                            class="w-4 h-4 text-slate-950"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2.5"
+                                d="M14 5l7 7m0 0l-7 7m7-7H3"
+                            />
+                        </svg>
+                    </button>
+
+                </div>
+
             </form>
 
-            <!-- Divider -->
-            <!-- <div class="relative my-6">
-                <div class="absolute inset-0 flex items-center">
-                    <div class="w-full border-t border-dark-secondary"></div>
-                </div>
-                <div class="relative flex justify-center text-xs">
-                    <span class="px-3 bg-dark-card text-gray-500">or continue with</span>
-                </div>
-            </div> -->
 
-            <!-- Social Login Buttons (optional - wire up as needed) -->
-            <!-- <div class="grid grid-cols-2 gap-3">
-                <button type="button"
-                        class="flex items-center justify-center gap-2 py-2.5 px-4
-                               bg-dark-bg border border-dark-secondary rounded-xl
-                               text-sm text-gray-300 hover:bg-white/5 hover:border-gray-500
-                               transition-all duration-200">
-                    <svg class="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-                        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-                        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-                        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/>
-                        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-                    </svg>
-                    Google
-                </button>
-                <button type="button"
-                        class="flex items-center justify-center gap-2 py-2.5 px-4
-                               bg-dark-bg border border-dark-secondary rounded-xl
-                               text-sm text-gray-300 hover:bg-white/5 hover:border-gray-500
-                               transition-all duration-200">
-                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/>
-                    </svg>
-                    Apple
-                </button>
-            </div>
-        </div> -->
+            <!-- =================================================
+                 SOCIAL AUTH DIVIDER
+            ================================================== -->
+        
 
-        <!-- Sign up link -->
-        <p class="text-center text-sm text-gray-400 mt-6">
-            Don't have an account?
-            <a href="{% url 'register' %}" class="text-primary font-medium hover:text-red-400 transition-colors">
-                Create one
+               
+        <!-- =====================================================
+             SIGN UP FOOTER
+        ====================================================== -->
+        <p
+            class="text-center text-xs sm:text-sm
+                   text-slate-400 mt-6"
+        >
+            Don't have an account yet?
+
+            <a
+                href="{% url 'register' %}"
+                class="text-emerald-400
+                       font-bold
+                       hover:text-emerald-300
+                       transition-colors ml-1"
+            >
+                Create one for free
             </a>
         </p>
+
     </div>
 
-    <script src="{% static 'app/script.js' %}">
+
+    <!-- =========================================================
+         PASSWORD VISIBILITY TOGGLE
+    ========================================================== -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            const toggleBtn =
+                document.getElementById('passwordToggleBtn');
+
+            const pwdWrapper =
+                document.getElementById('passwordWrapper');
+
+            const eyeIcon =
+                document.getElementById('eyeIcon');
+
+
+            if (toggleBtn && pwdWrapper) {
+
+                const pwdInput =
+                    pwdWrapper.querySelector('input');
+
+
+                if (pwdInput) {
+
+                    toggleBtn.addEventListener('click', () => {
+
+                        const isPassword =
+                            pwdInput.getAttribute('type') === 'password';
+
+
+                        pwdInput.setAttribute(
+                            'type',
+                            isPassword ? 'text' : 'password'
+                        );
+
+
+                        // Toggle SVG icon
+                        if (isPassword) {
+
+                            eyeIcon.innerHTML = `
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M13.875 18.825A10.05 10.05 0 0112 19
+                                       c-4.478 0-8.268-2.943-9.543-7
+                                       a9.97 9.97 0 011.563-3.029
+                                       m5.858.908a3 3 0 114.243 4.243
+                                       M9.878 9.878l4.242 4.242
+                                       M9.88 9.88l-3.29-3.29
+                                       m7.532 7.532l3.29 3.29
+                                       M3 3l18 18"
+                                />
+                            `;
+
+                        } else {
+
+                            eyeIcon.innerHTML = `
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M15 12a3 3 0 11-6 0
+                                       3 3 0 016 0z"
+                                />
+
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M2.458 12C3.732 7.943
+                                       7.523 5 12 5
+                                       c4.478 0 8.268 2.943
+                                       9.542 7
+                                       -1.274 4.057-5.064 7-9.542 7
+                                       -4.477 0-8.268-2.943-9.542-7z"
+                                />
+                            `;
+                        }
+
+                    });
+
+                }
+
+            }
+
+        });
     </script>
+
+
+    <!-- Main JavaScript -->
+    <script src="{% static 'app/script.js' %}"></script>
+
 </body>
+
 </html>

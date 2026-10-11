@@ -1,96 +1,107 @@
 {% load static %}
+
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
     <title>Create Account | FitTrack</title>
 
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- Google Fonts -->
+    <!-- Google Fonts - Inter -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700&display=swap" rel="stylesheet">
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet"
+    >
+
     <script>
         tailwind.config = {
+            darkMode: 'class',
+
             theme: {
                 extend: {
-                    colors: {
-                        dark: {
-                            bg: '#121212',
-                            sidebar: '#1E1E1E',
-                            card: '#2A2A2A',
-                            secondary: '#424242',
-                        },
-                        primary: {
-                            DEFAULT: '#E53935',
-                            hover: '#C62828',
-                        },
-                        success: '#43A047',
-                        warning: '#FB8C00',
-                    },
                     fontFamily: {
-                        sans: ['Inter', 'system-ui', 'sans-serif'],
-                        display: ['Poppins', 'system-ui', 'sans-serif'],
+                        sans: [
+                            'Inter',
+                            'system-ui',
+                            '-apple-system',
+                            'sans-serif'
+                        ],
+                    },
+
+                    colors: {
+                        slate: {
+                            850: '#0F172A',
+                            900: '#0B1120',
+                            950: '#060913',
+                        }
                     }
                 }
             }
         }
     </script>
-<style>
-    body {
-            font-family: 'Inter', system-ui, sans-serif;
-        }
-        .font-display {
-            font-family: 'Poppins', system-ui, sans-serif;
-        }
-        .input-field {
+
+    <link rel="stylesheet" href="{% static 'app/styles.css' %}">
+
+    <style>
+        /* Form Field Base Utility Overrides for Django Rendered Inputs */
+
+        .fittrack-input input,
+        .fittrack-input select,
+        .fittrack-input textarea {
             width: 100%;
-            background-color: #121212;
-            border: 1px solid #424242;
+            background-color: rgba(6, 9, 19, 0.75);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             color: #ffffff;
             border-radius: 0.75rem;
             padding: 0.75rem 1rem;
             font-size: 0.875rem;
-            transition: all 0.2s ease;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .input-field::placeholder {
-            color: #6b7280;
+
+        .fittrack-input input::placeholder,
+        .fittrack-input textarea::placeholder {
+            color: #64748b;
         }
-        .input-field:hover {
-            border-color: #6b7280;
+
+        .fittrack-input input:hover,
+        .fittrack-input select:hover,
+        .fittrack-input textarea:hover {
+            border-color: rgba(255, 255, 255, 0.2);
         }
-        .input-field:focus {
+
+        .fittrack-input input:focus,
+        .fittrack-input select:focus,
+        .fittrack-input textarea:focus {
             outline: none;
-            border-color: #E53935;
-            box-shadow: 0 0 0 3px rgba(229, 57, 53, 0.25);
+            border-color: #10B981;
+            box-shadow:
+                0 0 0 1px #10B981,
+                0 0 15px rgba(16, 185, 129, 0.15);
         }
-        .input-field.error {
-            border-color: #E53935;
-            box-shadow: 0 0 0 3px rgba(229, 57, 53, 0.2);
+
+        .fittrack-input input.is-invalid,
+        .fittrack-input select.is-invalid,
+        .fittrack-input textarea.is-invalid {
+            border-color: #F43F5E;
+            box-shadow: 0 0 0 1px #F43F5E;
         }
-        .input-field.success {
-            border-color: #43A047;
+
+        .fittrack-input input.is-valid,
+        .fittrack-input select.is-valid,
+        .fittrack-input textarea.is-valid {
+            border-color: rgba(16, 185, 129, 0.6);
         }
-        .error-msg {
-            color: #f87171;
-            font-size: 0.75rem;
-            margin-top: 0.35rem;
-            display: none;
-        }
-        .error-msg.show {
-            display: block;
-        }
-        .label {
-            display: block;
-            font-size: 0.875rem;
-            font-weight: 500;
-            color: #d1d5db;
-            margin-bottom: 0.4rem;
-        }
-        /* Hide default file input */
+
+        /* Hide native file input for custom styled button */
+
         .file-input-hidden {
             position: absolute;
             width: 1px;
@@ -101,524 +112,1950 @@
             clip: rect(0, 0, 0, 0);
             border: 0;
         }
-</style>
+    </style>
 </head>
-<body class="bg-dark-bg min-h-screen flex items-center justify-center p-4 py-10">
 
-    <!-- Background glow -->
-    <div class="fixed inset-0 overflow-hidden pointer-events-none">
-        <div class="absolute -top-40 -right-40 w-96 h-96 bg-primary/10 rounded-full blur-3xl"></div>
-        <div class="absolute -bottom-40 -left-40 w-96 h-96 bg-primary/5 rounded-full blur-3xl"></div>
+<body
+    class="bg-slate-950 text-slate-100 min-h-screen flex items-center justify-center p-4 sm:p-6 py-8 antialiased selection:bg-emerald-500 selection:text-slate-950 relative overflow-x-hidden"
+>
+
+    <!-- ========================================= -->
+    <!-- AMBIENT BACKGROUND GLOW EFFECTS -->
+    <!-- ========================================= -->
+
+    <div class="fixed inset-0 overflow-hidden pointer-events-none z-0">
+
+        <div
+            class="absolute -top-36 -right-36 w-96 h-96 bg-emerald-500/10 rounded-full blur-[110px]"
+        ></div>
+
+        <div
+            class="absolute -bottom-36 -left-36 w-96 h-96 bg-teal-500/10 rounded-full blur-[110px]"
+        ></div>
+
+        <div
+            class="absolute top-1/3 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-emerald-500/[0.03] rounded-full blur-[140px]"
+        ></div>
+
     </div>
 
-    <div class="w-full max-w-2xl relative z-10">
+    <!-- ========================================= -->
+    <!-- MAIN FORM CONTAINER -->
+    <!-- ========================================= -->
 
-        <!-- Brand -->
-        <div class="text-center mb-8">
-            <div class="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-primary/20 mb-3">
-                <svg class="w-8 h-8 text-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
-                </svg>
-            </div>
-            <h1 class="font-display text-2xl sm:text-3xl font-bold text-white tracking-tight">Create Account</h1>
-            <p class="text-gray-400 mt-1 text-sm">Join FitTrack and start your fitness journey</p>
+    <div class="w-full max-w-xl relative z-10 py-4 sm:py-8">
+
+        <!-- Brand / Header -->
+
+        <div class="text-center mb-6">
+
+            <a
+                href="/"
+                class="inline-flex items-center justify-center mb-3 group focus:outline-none"
+            >
+                <div
+                    class="w-14 h-14 rounded-2xl bg-gradient-to-tr from-emerald-500/20 via-emerald-400/10 to-teal-500/20 border border-emerald-500/30 group-hover:border-emerald-400/60 shadow-lg shadow-emerald-950/60 flex items-center justify-center transition-all duration-300 group-hover:scale-105"
+                >
+                    <svg
+                        class="w-7 h-7 text-emerald-400 group-hover:text-emerald-300 transition-colors"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2.5"
+                            d="M13 10V3L4 14h7v7l9-11h-7z"
+                        />
+                    </svg>
+                </div>
+            </a>
+
+            <h1 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+                Create Your
+                <span
+                    class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 to-teal-400"
+                >
+                    Account
+                </span>
+            </h1>
+
+            <p class="text-xs sm:text-sm text-slate-400 mt-1">
+                Join FitTrack today to start personalized workout plans and fitness analytics.
+            </p>
+
         </div>
 
-        <!-- Card -->
-        <div class="bg-dark-card rounded-2xl shadow-2xl border border-white/5 p-6 sm:p-8">
+        <!-- Glassmorphic Registration Card -->
 
-            <!-- Django messages -->
+        <div
+            class="relative overflow-hidden bg-slate-900/85 backdrop-blur-xl border border-white/[0.08] rounded-2xl p-5 sm:p-8 shadow-2xl shadow-black/80"
+        >
+
+            <!-- Top glowing accent stripe -->
+
+            <div
+                class="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-300"
+            ></div>
+
+            <!-- Django Flash Messages -->
+
             {% if messages %}
+
+            <div class="space-y-3 mb-6">
+
                 {% for message in messages %}
-                    <div class="mb-5 px-4 py-3 rounded-lg text-sm
-                        {% if message.tags == 'error' %}bg-red-500/15 text-red-400 border border-red-500/30
-                        {% elif message.tags == 'success' %}bg-success/15 text-green-400 border border-success/30
-                        {% else %}bg-white/5 text-gray-300 border border-white/10{% endif %}">
+
+                <div
+                    class="flex items-center gap-2.5 px-4 py-3 rounded-xl text-xs sm:text-sm font-medium shadow-sm transition-all
+                    {% if message.tags == 'error' %}
+                        bg-rose-500/10 text-rose-300 border border-rose-500/30
+                    {% elif message.tags == 'success' %}
+                        bg-emerald-500/10 text-emerald-300 border border-emerald-500/30
+                    {% else %}
+                        bg-white/5 text-slate-300 border border-white/10
+                    {% endif %}"
+                >
+
+                    {% if message.tags == 'error' %}
+
+                    <svg
+                        class="w-4 h-4 text-rose-400 flex-shrink-0"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                        />
+                    </svg>
+
+                    {% elif message.tags == 'success' %}
+
+                    <svg
+                        class="w-4 h-4 text-emerald-400 flex-shrink-0"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                    >
+                        <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                        />
+                    </svg>
+
+                    {% endif %}
+
+                    <span class="flex-1">
                         {{ message }}
-                    </div>
+                    </span>
+
+                </div>
+
                 {% endfor %}
+
+            </div>
+
             {% endif %}
 
+            <!-- Django Non-field Errors -->
+
             {% if form.non_field_errors %}
-                <div class="mb-5 px-4 py-3 rounded-lg text-sm bg-red-500/15 text-red-400 border border-red-500/30">
+
+            <div
+                class="mb-6 px-4 py-3 rounded-xl text-xs sm:text-sm bg-rose-500/10 text-rose-300 border border-rose-500/30 flex items-start gap-2.5"
+            >
+
+                <svg
+                    class="w-4 h-4 text-rose-400 flex-shrink-0 mt-0.5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                >
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                </svg>
+
+                <div class="space-y-1">
+
                     {% for error in form.non_field_errors %}
                         <p>{{ error }}</p>
                     {% endfor %}
+
                 </div>
+
+            </div>
+
             {% endif %}
 
-            <form method="post" enctype="multipart/form-data" id="registerForm" novalidate class="space-y-5" action="{% url 'register' %}">
+            <!-- Registration Form -->
+
+            <form
+                method="post"
+                enctype="multipart/form-data"
+                id="registerForm"
+                novalidate
+                class="space-y-5"
+                action="{% url 'register' %}"
+            >
+
                 {% csrf_token %}
 
-                <!-- Profile Picture -->
-                <div>
-                    <label class="label">Profile Picture</label>
-                    <div class="flex items-center gap-4">
-                        <div id="avatarPreview" class="w-20 h-20 rounded-full bg-dark-bg border-2 border-dark-secondary flex items-center justify-center overflow-hidden flex-shrink-0">
-                            <svg class="w-10 h-10 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                            </svg>
-                        </div>
-                        <div class="flex-1">
-                            <label for="id_profile_picture"
-                                   class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-dark-bg border border-dark-secondary text-sm text-gray-300 hover:border-gray-500 hover:text-white cursor-pointer transition-all duration-200">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                                </svg>
-                                Choose Photo
-                            </label>
-                            <!-- <input type="file"
-                                   name="profile_picture"
-                                   id="id_profile_picture"
-                                   accept="image/jpeg,image/png,image/webp"
-                                   class="file-input-hidden"
-                                   onchange="previewAvatar(this)"> -->
-                                    {{ form.profile_picture }}
-                                     {% if form.profile_picture.errors %}
-                             <p class="error-msg show">{{ form.profile_picture.errors.0 }}</p>
-                         {% endif %}
-                            <p class="text-xs text-gray-500 mt-1.5">JPG, PNG or WebP. Max 2MB.</p>
-                            <p class="error-msg" id="error_profile_picture">Please select a valid image (JPG/PNG/WebP, max 2MB).</p>
-                        </div>
-                    </div>
-                </div>
+                <!-- ========================================= -->
+                <!-- PROFILE PICTURE -->
+                <!-- ========================================= -->
 
-                <!-- Name + Contact (side by side on larger screens) -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                    <div>
-                        <label for="id_name" class="label">Full Name <span class="text-primary">*</span></label>
-                        <!-- <input type="text"
-                               name="name"
-                               id="id_name"
-                               class="input-field"
-                               placeholder="Enter your full name"
-                               autocomplete="name"
-                               value="{{ form.name.value|default:'' }}">-->
-                               {{ form.name }}
-                               {% if form.name.errors %}
-                               <p class="error-msg show">{{ form.name.errors.0 }}</p>
-                               {% endif %}
-                               <p class="error-msg" id="error_name">Name is required (at least 2 characters, letters only).</p> 
-                    </div>
-                    <div>
-                        <label for="id_contact" class="label">Contact Number <span class="text-primary">*</span></label>
-                        <!-- <input type="tel"
-                               name="contact"
-                               id="id_contact"
-                               class="input-field"
-                               placeholder="e.g. 98XXXXXXXX"
-                               autocomplete="tel"
-                               value="{{ form.contact.value|default:'' }}">-->
-                               {{ form.contact }}
-                               {% if form.contact.errors %}
-                               <p class="error-msg show">{{ form.contact.errors.0 }}</p>
-                               {% endif %}
-                               <p class="error-msg" id="error_contact">Enter a valid 10-digit number starting with 97 or 98.</p> 
-                    
-                        </div>
-                </div>
+                <div class="p-4 rounded-xl bg-slate-950/50 border border-white/[0.06]">
 
-                <!-- Address -->
-                <div>
-                    <label for="id_address" class="label">Address <span class="text-primary">*</span></label>
-                    <!-- <textarea name="address"
-                              id="id_address"
-                              rows="2"
-                              class="input-field resize-none"
-                              placeholder="Enter your full address">{{ form.address.value|default:'' }}</textarea>-->
-                              {{ form.address }}
-                              {% if form.address.errors %}
-                              <p class="error-msg show">{{ form.address.errors.0 }}</p>
-                              {% endif %}
-                              <p class="error-msg" id="error_address">Address is required (at least 5 characters).</p> 
-                </div>
-
-                <!-- DOB + Gender -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                    <div>
-                        <label for="id_dob" class="label">Date of Birth <span class="text-primary">*</span></label>
-                        <!-- <input type="date"
-                               name="date_of_birth"
-                               id="id_dob"
-                               class="input-field"
-                               max=""
-                               value="{{ form.date_of_birth.value|default:'' }}">-->
-                               {{ form.date_of_birth }}
-                               {% if form.date_of_birth.errors %}
-                               <p class="error-msg show">{{ form.date_of_birth.errors.0 }}</p>
-                               {% endif %}
-                               <p class="error-msg" id="error_dob">Please enter a valid date of birth (you must be at least 13 years old).</p> 
-                    </div>
-                    <div>
-                        <label class="label">Gender <span class="text-primary">*</span></label>
-                        <div class="flex flex-wrap gap-4 mt-1">
-                            <label class="inline-flex items-center gap-2 cursor-pointer">
-                                <input type="radio" name="gender" value="male" id="gender_male"
-                                       class="w-4 h-4 text-primary bg-dark-bg border-dark-secondary focus:ring-primary focus:ring-offset-0"
-                                       {% if form.gender.value == 'male' %}checked{% endif %}>
-                                <span class="text-sm text-gray-300">Male</span>
-                            </label>
-                            <label class="inline-flex items-center gap-2 cursor-pointer">
-                                <input type="radio" name="gender" value="female" id="gender_female"
-                                       class="w-4 h-4 text-primary bg-dark-bg border-dark-secondary focus:ring-primary focus:ring-offset-0"
-                                       {% if form.gender.value == 'female' %}checked{% endif %}>
-                                <span class="text-sm text-gray-300">Female</span>
-                            </label>
-                            <label class="inline-flex items-center gap-2 cursor-pointer">
-                                <input type="radio" name="gender" value="other" id="gender_other"
-                                       class="w-4 h-4 text-primary bg-dark-bg border-dark-secondary focus:ring-primary focus:ring-offset-0"
-                                       {% if form.gender.value == 'other' %}checked{% endif %}>
-                                <span class="text-sm text-gray-300">Other</span>
-                            </label>
-                        </div>
-                        <p class="error-msg" id="error_gender">Please select your gender.</p>
-                    </div>
-                </div>
-
-                <!-- Email -->
-                <div>
-                    <label for="id_email" class="label">Email Address <span class="text-primary">*</span></label>
-                    <!-- <input type="email"
-                           name="email"
-                           id="id_email"
-                           class="input-field"
-                           placeholder="you@example.com"
-                           autocomplete="email"
-                           value="{{ form.email.value|default:'' }}">-->
-                           {{ form.email }}
-                           {% if form.email.errors %}
-                           <p class="error-msg show">{{ form.email.errors.0 }}</p>
-                           {% endif %}
-                           <p class="error-msg" id="error_email">Please enter a valid email address.</p> 
-                </div>
-
-                <!-- Subscription-->
-                 <div>
-    <label for="id_package" class="label">Membership Package <span class="text-primary">*</span></label>
-    {{ form.package }}
-    {% if form.package.errors %}
-        <p class="error-msg show">{{ form.package.errors.0 }}</p>
-    {% endif %}
-</div>
-
-                <!-- Password + Confirm -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                    <div>
-                        <label for="id_password" class="label">Password <span class="text-primary">*</span></label>
-                        <div class="relative">
-                            <!-- <input type="password"
-                                   name="password"
-                                   id="id_password"
-                                   class="input-field pr-11"
-                                   placeholder="Create a strong password"
-                                   autocomplete="new-password"> -->
-                                    {{ form.password }}
-                        
-                            <button type="button" onclick="togglePass('id_password', this)"
-                                    class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-gray-500 hover:text-gray-300">
-                                <svg class="w-5 h-5 eye-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                                </svg>
-                            </button>
-                        </div>
-                          {% if form.password.errors %}
-                             <p class="error-msg show">{{ form.password.errors.0 }}</p>
-                         {% endif %}
-                        <p class="error-msg" id="error_password">Password must be at least 8 characters and include uppercase, lowercase, number & special character.</p>
-                    </div>
-                    <div>
-                        <label for="id_confirm_password" class="label">Confirm Password <span class="text-primary">*</span></label>
-                        <div class="relative">
-                            <!-- <input type="password"
-                                   name="confirm_password"
-                                   id="id_confirm_password"
-                                   class="input-field pr-11"
-                                   placeholder="Re-enter your password"
-                                   autocomplete="new-password"> -->
-                                    {{ form.confirm_password }}
-                                    <button type="button" onclick="togglePass('id_confirm_password', this)"
-                                    class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-gray-500 hover:text-gray-300">
-                                    <svg class="w-5 h-5 eye-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                                    </svg>
-                                </button>
-                            </div>
-                            {% if form.confirm_password.errors %}
-                            <p class="error-msg show">{{ form.confirm_password.errors.0 }}</p>
-                            {% endif %}
-                        <p class="error-msg" id="error_confirm_password">Passwords do not match.</p>
-                    </div>
-                </div>
-
-                <!-- Terms & Conditions -->
-                <div>
-                    <label class="inline-flex items-start gap-3 cursor-pointer">
-                        <input type="checkbox"
-                               name="terms"
-                               id="id_terms"
-                               class="mt-0.5 w-4 h-4 rounded border-dark-secondary bg-dark-bg text-primary focus:ring-primary focus:ring-offset-0 cursor-pointer">
-                        <span class="text-sm text-gray-400 leading-relaxed">
-                            I agree to the
-                            <a href="#" target="_blank" class="text-primary hover:text-red-400 underline">Terms & Conditions</a>
-                            of FitTrack.
+                    <label
+                        class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2.5"
+                    >
+                        Profile Avatar
+                        <span class="text-slate-500 font-normal lowercase">
+                            (optional)
                         </span>
                     </label>
-                    <p class="error-msg" id="error_terms">You must accept the Terms & Conditions to continue.</p>
+
+                    <div class="flex items-center gap-4">
+
+                        <div
+                            id="avatarPreview"
+                            class="w-16 h-16 rounded-2xl bg-slate-900 border-2 border-dashed border-white/20 flex items-center justify-center overflow-hidden flex-shrink-0 shadow-inner group"
+                        >
+                            <svg
+                                class="w-8 h-8 text-slate-500 group-hover:text-emerald-400 transition-colors"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="1.5"
+                                    d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                                />
+                            </svg>
+                        </div>
+
+                        <div class="flex-1">
+
+                            <label
+                                for="id_profile_picture"
+                                class="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 hover:border-emerald-500/50 text-xs sm:text-sm font-semibold text-slate-200 hover:text-white cursor-pointer transition-all active:scale-95 shadow-sm"
+                            >
+                                <svg
+                                    class="w-4 h-4 text-emerald-400"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                                    />
+                                </svg>
+
+                                <span>Choose Image</span>
+                            </label>
+
+                            <div class="hidden">
+                                {{ form.profile_picture }}
+                            </div>
+
+                            <p class="text-[11px] text-slate-400 mt-1.5">
+                                JPG, PNG, or WebP. Max 2MB.
+                            </p>
+
+                            {% if form.profile_picture.errors %}
+
+                            <p
+                                class="text-xs text-rose-400 mt-1 font-medium flex items-center gap-1"
+                            >
+                                <svg
+                                    class="w-3.5 h-3.5"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                                    />
+                                </svg>
+
+                                {{ form.profile_picture.errors.0 }}
+                            </p>
+
+                            {% endif %}
+
+                            <p
+                                class="text-xs text-rose-400 mt-1 font-medium hidden items-center gap-1"
+                                id="error_profile_picture"
+                            >
+                                <svg
+                                    class="w-3.5 h-3.5"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                                    />
+                                </svg>
+
+                                Please select a valid image file (JPG, PNG, WebP) under 2MB.
+                            </p>
+
+                        </div>
+
+                    </div>
+
                 </div>
 
-                <!-- Submit -->
-                <button type="submit"
+                <!-- ========================================= -->
+                <!-- NAME & CONTACT -->
+                <!-- ========================================= -->
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+
+                    <!-- Full Name -->
+
+                    <div>
+
+                        <label
+                            for="id_name"
+                            class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2"
+                        >
+                            Full Name
+                            <span class="text-emerald-400">*</span>
+                        </label>
+
+                        <div class="fittrack-input relative">
+                            {{ form.name }}
+                        </div>
+
+                        {% if form.name.errors %}
+
+                        <p
+                            class="text-xs text-rose-400 mt-1.5 font-medium flex items-center gap-1"
+                        >
+                            <svg
+                                class="w-3.5 h-3.5"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                                />
+                            </svg>
+
+                            {{ form.name.errors.0 }}
+                        </p>
+
+                        {% endif %}
+
+                        <p
+                            class="text-xs text-rose-400 mt-1.5 font-medium hidden items-center gap-1"
+                            id="error_name"
+                        >
+                            <svg
+                                class="w-3.5 h-3.5"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                                />
+                            </svg>
+
+                            Name must be at least 2 characters (letters only).
+                        </p>
+
+                    </div>
+
+                    <!-- Contact Number -->
+
+                    <div>
+
+                        <label
+                            for="id_contact"
+                            class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2"
+                        >
+                            Contact Number
+                            <span class="text-emerald-400">*</span>
+                        </label>
+
+                        <div class="fittrack-input relative">
+                            {{ form.contact }}
+                        </div>
+
+                        {% if form.contact.errors %}
+
+                        <p
+                            class="text-xs text-rose-400 mt-1.5 font-medium flex items-center gap-1"
+                        >
+                            <svg
+                                class="w-3.5 h-3.5"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                                />
+                            </svg>
+
+                            {{ form.contact.errors.0 }}
+                        </p>
+
+                        {% endif %}
+
+                        <p
+                            class="text-xs text-rose-400 mt-1.5 font-medium hidden items-center gap-1"
+                            id="error_contact"
+                        >
+                            <svg
+                                class="w-3.5 h-3.5"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                                />
+                            </svg>
+
+                            Enter a valid 10-digit number starting with 97 or 98.
+                        </p>
+
+                    </div>
+
+                </div>
+
+                <!-- ========================================= -->
+                <!-- ADDRESS -->
+                <!-- ========================================= -->
+
+                <div>
+
+                    <label
+                        for="id_address"
+                        class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2"
+                    >
+                        Residential Address
+                        <span class="text-emerald-400">*</span>
+                    </label>
+
+                    <div class="fittrack-input relative">
+                        {{ form.address }}
+                    </div>
+
+                    {% if form.address.errors %}
+
+                    <p
+                        class="text-xs text-rose-400 mt-1.5 font-medium flex items-center gap-1"
+                    >
+                        <svg
+                            class="w-3.5 h-3.5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                            />
+                        </svg>
+
+                        {{ form.address.errors.0 }}
+                    </p>
+
+                    {% endif %}
+
+                    <p
+                        class="text-xs text-rose-400 mt-1.5 font-medium hidden items-center gap-1"
+                        id="error_address"
+                    >
+                        <svg
+                            class="w-3.5 h-3.5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                            />
+                        </svg>
+
+                        Address is required (at least 5 characters).
+                    </p>
+
+                </div>
+
+                <!-- ========================================= -->
+                <!-- DATE OF BIRTH + GENDER -->
+                <!-- ========================================= -->
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+
+                    <!-- Date of Birth -->
+
+                    <div>
+
+                        <label
+                            for="id_dob"
+                            class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2"
+                        >
+                            Date of Birth
+                            <span class="text-emerald-400">*</span>
+                        </label>
+
+                        <div class="fittrack-input relative">
+                            {{ form.date_of_birth }}
+                        </div>
+
+                        {% if form.date_of_birth.errors %}
+
+                        <p
+                            class="text-xs text-rose-400 mt-1.5 font-medium flex items-center gap-1"
+                        >
+                            <svg
+                                class="w-3.5 h-3.5"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                                />
+                            </svg>
+
+                            {{ form.date_of_birth.errors.0 }}
+                        </p>
+
+                        {% endif %}
+
+                        <p
+                            class="text-xs text-rose-400 mt-1.5 font-medium hidden items-center gap-1"
+                            id="error_dob"
+                        >
+                            <svg
+                                class="w-3.5 h-3.5"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                                />
+                            </svg>
+
+                            You must be at least 13 years old to register.
+                        </p>
+
+                    </div>
+
+                    <!-- Gender -->
+
+                    <div>
+
+                        <label
+                            class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2"
+                        >
+                            Gender
+                            <span class="text-emerald-400">*</span>
+                        </label>
+
+                        <div class="grid grid-cols-3 gap-2">
+
+                            <label
+                                class="flex items-center justify-center gap-2 p-2.5 rounded-xl bg-slate-950/70 border border-white/10 hover:border-emerald-500/40 cursor-pointer transition-all has-[:checked]:border-emerald-500 has-[:checked]:bg-emerald-500/10 has-[:checked]:text-emerald-400 text-xs sm:text-sm font-medium text-slate-300"
+                            >
+                                <input
+                                    type="radio"
+                                    name="gender"
+                                    value="male"
+                                    id="gender_male"
+                                    class="sr-only"
+                                    {% if form.gender.value == 'male' %}checked{% endif %}
+                                >
+
+                                <span>Male</span>
+                            </label>
+
+                            <label
+                                class="flex items-center justify-center gap-2 p-2.5 rounded-xl bg-slate-950/70 border border-white/10 hover:border-emerald-500/40 cursor-pointer transition-all has-[:checked]:border-emerald-500 has-[:checked]:bg-emerald-500/10 has-[:checked]:text-emerald-400 text-xs sm:text-sm font-medium text-slate-300"
+                            >
+                                <input
+                                    type="radio"
+                                    name="gender"
+                                    value="female"
+                                    id="gender_female"
+                                    class="sr-only"
+                                    {% if form.gender.value == 'female' %}checked{% endif %}
+                                >
+
+                                <span>Female</span>
+                            </label>
+
+                            <label
+                                class="flex items-center justify-center gap-2 p-2.5 rounded-xl bg-slate-950/70 border border-white/10 hover:border-emerald-500/40 cursor-pointer transition-all has-[:checked]:border-emerald-500 has-[:checked]:bg-emerald-500/10 has-[:checked]:text-emerald-400 text-xs sm:text-sm font-medium text-slate-300"
+                            >
+                                <input
+                                    type="radio"
+                                    name="gender"
+                                    value="other"
+                                    id="gender_other"
+                                    class="sr-only"
+                                    {% if form.gender.value == 'other' %}checked{% endif %}
+                                >
+
+                                <span>Other</span>
+                            </label>
+
+                        </div>
+
+                        <p
+                            class="text-xs text-rose-400 mt-1.5 font-medium hidden items-center gap-1"
+                            id="error_gender"
+                        >
+                            <svg
+                                class="w-3.5 h-3.5"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                                />
+                            </svg>
+
+                            Please select your gender.
+                        </p>
+
+                    </div>
+
+                </div>
+
+                <!-- ========================================= -->
+                <!-- EMAIL -->
+                <!-- ========================================= -->
+
+                <div>
+
+                    <label
+                        for="id_email"
+                        class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2"
+                    >
+                        Email Address
+                        <span class="text-emerald-400">*</span>
+                    </label>
+
+                    <div class="fittrack-input relative">
+                        {{ form.email }}
+                    </div>
+
+                    {% if form.email.errors %}
+
+                    <p
+                        class="text-xs text-rose-400 mt-1.5 font-medium flex items-center gap-1"
+                    >
+                        <svg
+                            class="w-3.5 h-3.5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                            />
+                        </svg>
+
+                        {{ form.email.errors.0 }}
+                    </p>
+
+                    {% endif %}
+
+                    <p
+                        class="text-xs text-rose-400 mt-1.5 font-medium hidden items-center gap-1"
+                        id="error_email"
+                    >
+                        <svg
+                            class="w-3.5 h-3.5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                            />
+                        </svg>
+
+                        Please enter a valid email address.
+                    </p>
+
+                </div>
+
+                <!-- ========================================= -->
+                <!-- MEMBERSHIP PACKAGE -->
+                <!-- ========================================= -->
+
+                <div>
+
+                    <label
+                        for="id_package"
+                        class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2"
+                    >
+                        Membership Tier
+                        <span class="text-emerald-400">*</span>
+                    </label>
+
+                    <div
+                        class="fittrack-input relative [&>select]:w-full [&>select]:bg-slate-950/70 [&>select]:border [&>select]:border-white/10 [&>select]:focus:border-emerald-500 [&>select]:text-white [&>select]:rounded-xl [&>select]:p-3 [&>select]:text-sm"
+                    >
+                        {{ form.package }}
+                    </div>
+
+                    {% if form.package.errors %}
+
+                    <p
+                        class="text-xs text-rose-400 mt-1.5 font-medium flex items-center gap-1"
+                    >
+                        <svg
+                            class="w-3.5 h-3.5"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                            />
+                        </svg>
+
+                        {{ form.package.errors.0 }}
+                    </p>
+
+                    {% endif %}
+
+                </div>
+
+                <!-- ========================================= -->
+                <!-- PASSWORD + CONFIRM PASSWORD -->
+                <!-- ========================================= -->
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+
+                    <!-- Password -->
+
+                    <div>
+
+                        <label
+                            for="id_password"
+                            class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2"
+                        >
+                            Password
+                            <span class="text-emerald-400">*</span>
+                        </label>
+
+                        <div class="fittrack-input relative">
+
+                            {{ form.password }}
+
+                            <button
+                                type="button"
+                                onclick="togglePass('id_password', this)"
+                                aria-label="Toggle password visibility"
+                                class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-white transition-colors focus:outline-none"
+                            >
+                                <svg
+                                    class="w-4 h-4 eye-icon"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                                    />
+
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                                    />
+                                </svg>
+                            </button>
+
+                        </div>
+
+                        {% if form.password.errors %}
+
+                        <p
+                            class="text-xs text-rose-400 mt-1.5 font-medium flex items-center gap-1"
+                        >
+                            <svg
+                                class="w-3.5 h-3.5"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                                />
+                            </svg>
+
+                            {{ form.password.errors.0 }}
+                        </p>
+
+                        {% endif %}
+
+                        <p
+                            class="text-xs text-rose-400 mt-1.5 font-medium hidden items-center gap-1"
+                            id="error_password"
+                        >
+                            <svg
+                                class="w-3.5 h-3.5 flex-shrink-0"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                                />
+                            </svg>
+
+                            8+ characters with uppercase, lowercase, number & symbol.
+                        </p>
+
+                    </div>
+
+                    <!-- Confirm Password -->
+
+                    <div>
+
+                        <label
+                            for="id_confirm_password"
+                            class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2"
+                        >
+                            Confirm Password
+                            <span class="text-emerald-400">*</span>
+                        </label>
+
+                        <div class="fittrack-input relative">
+
+                            {{ form.confirm_password }}
+
+                            <button
+                                type="button"
+                                onclick="togglePass('id_confirm_password', this)"
+                                aria-label="Toggle confirm password visibility"
+                                class="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-white transition-colors focus:outline-none"
+                            >
+                                <svg
+                                    class="w-4 h-4 eye-icon"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                                    />
+
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                                    />
+                                </svg>
+                            </button>
+
+                        </div>
+
+                        {% if form.confirm_password.errors %}
+
+                        <p
+                            class="text-xs text-rose-400 mt-1.5 font-medium flex items-center gap-1"
+                        >
+                            <svg
+                                class="w-3.5 h-3.5"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                                />
+                            </svg>
+
+                            {{ form.confirm_password.errors.0 }}
+                        </p>
+
+                        {% endif %}
+
+                        <p
+                            class="text-xs text-rose-400 mt-1.5 font-medium hidden items-center gap-1"
+                            id="error_confirm_password"
+                        >
+                            <svg
+                                class="w-3.5 h-3.5 flex-shrink-0"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    stroke-width="2"
+                                    d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                                />
+                            </svg>
+
+                            Passwords do not match.
+                        </p>
+
+                    </div>
+
+                </div>
+
+                <!-- ========================================= -->
+                <!-- TERMS & CONDITIONS -->
+                <!-- ========================================= -->
+
+                <div class="pt-2">
+
+                    <label
+                        class="flex items-start gap-3 cursor-pointer select-none group"
+                    >
+
+                        <input
+                            type="checkbox"
+                            name="terms"
+                            id="id_terms"
+                            class="mt-0.5 w-4 h-4 rounded bg-slate-950/80 border border-white/20 text-emerald-500 focus:ring-emerald-500/30 focus:ring-offset-0 focus:ring-1 cursor-pointer transition-colors"
+                        >
+
+                        <span
+                            class="text-xs sm:text-sm text-slate-400 group-hover:text-slate-300 leading-relaxed transition-colors"
+                        >
+                            I agree to the
+
+                            <a
+                                href="#"
+                                target="_blank"
+                                class="text-emerald-400 hover:text-emerald-300 font-semibold underline underline-offset-2"
+                            >
+                                Terms & Conditions
+                            </a>
+
+                            and
+
+                            <a
+                                href="#"
+                                target="_blank"
+                                class="text-emerald-400 hover:text-emerald-300 font-semibold underline underline-offset-2"
+                            >
+                                Privacy Policy
+                            </a>
+
+                            of FitTrack.
+                        </span>
+
+                    </label>
+
+                    <p
+                        class="text-xs text-rose-400 mt-1.5 font-medium hidden items-center gap-1"
+                        id="error_terms"
+                    >
+                        <svg
+                            class="w-3.5 h-3.5 flex-shrink-0"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2"
+                                d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                            />
+                        </svg>
+
+                        You must accept the Terms & Conditions to proceed.
+                    </p>
+
+                </div>
+
+                <!-- ========================================= -->
+                <!-- SUBMIT BUTTON -->
+                <!-- ========================================= -->
+
+                <div class="pt-3">
+
+                    <button
+                        type="submit"
                         id="submitBtn"
-                        class="w-full bg-primary hover:bg-primary-hover active:bg-red-700
-                               text-white font-semibold py-3 px-4 rounded-xl
-                               transition-all duration-200
-                               shadow-lg shadow-primary/25 hover:shadow-primary/40
-                               focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-dark-card
-                               flex items-center justify-center gap-2">
-                    <span>ontinue to Payment</span>
-                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
-                    </svg>
-                </button>
+                        class="w-full inline-flex items-center justify-center gap-2 py-3.5 px-6 rounded-xl text-xs sm:text-sm font-bold text-slate-950 bg-gradient-to-r from-emerald-400 to-teal-400 hover:from-emerald-300 hover:to-teal-300 shadow-lg shadow-emerald-950/40 hover:shadow-emerald-500/20 active:scale-95 transition-all"
+                    >
+
+                        <span>
+                            Continue to Payment & Activation
+                        </span>
+
+                        <svg
+                            class="w-4 h-4 text-slate-950"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="2.5"
+                                d="M14 5l7 7m0 0l-7 7m7-7H3"
+                            />
+                        </svg>
+
+                    </button>
+
+                </div>
+
             </form>
+
         </div>
 
-        <!-- Login link -->
-        <p class="text-center text-sm text-gray-400 mt-6">
-            Already have an account?
-            <a href="{% url 'login' %}" class="text-primary font-medium hover:text-red-400 transition-colors">
-                Sign In
+        <!-- Footer Back to Sign In -->
+
+        <p class="text-center text-xs sm:text-sm text-slate-400 mt-6">
+
+            Already have an active account?
+
+            <a
+                href="{% url 'login' %}"
+                class="text-emerald-400 font-bold hover:text-emerald-300 transition-colors ml-1"
+            >
+                Sign in here
             </a>
+
         </p>
+
     </div>
 
+    <!-- ========================================= -->
+    <!-- JAVASCRIPT -->
+    <!-- ========================================= -->
+
     <script>
-        // Set max date for DOB (must be at least 13 years old)
+
+        // Set maximum date for DOB
+        // Must be at least 13 years old
+
         (function () {
-            const dobInput = document.getElementById('id_dob');
-            const today = new Date();
-            const maxDate = new Date(today.getFullYear() - 13, today.getMonth(), today.getDate());
-            dobInput.max = maxDate.toISOString().split('T')[0];
+
+            const dobInput =
+                document.getElementById('id_dob') ||
+                document.querySelector('input[name="date_of_birth"]');
+
+            if (dobInput) {
+
+                const today = new Date();
+
+                const maxDate = new Date(
+                    today.getFullYear() - 13,
+                    today.getMonth(),
+                    today.getDate()
+                );
+
+                dobInput.max =
+                    maxDate.toISOString().split('T')[0];
+            }
+
         })();
 
-        // Avatar preview
+
+        // =========================================
+        // PROFILE IMAGE PREVIEW
+        // =========================================
+
+        const profilePicInput =
+            document.getElementById('id_profile_picture') ||
+            document.querySelector('input[type="file"]');
+
+        if (profilePicInput) {
+
+            profilePicInput.addEventListener(
+                'change',
+                function () {
+                    previewAvatar(this);
+                }
+            );
+
+        }
+
+
         function previewAvatar(input) {
-            const preview = document.getElementById('avatarPreview');
-            const errorEl = document.getElementById('error_profile_picture');
+
+            const preview =
+                document.getElementById('avatarPreview');
+
+            const errorEl =
+                document.getElementById('error_profile_picture');
 
             if (input.files && input.files[0]) {
+
                 const file = input.files[0];
-                const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
-                const maxSize = 2 * 1024 * 1024; // 2MB
 
-                if (!validTypes.includes(file.type)) {
-                    showError(input, errorEl, true);
+                const validTypes = [
+                    'image/jpeg',
+                    'image/png',
+                    'image/webp'
+                ];
+
+                const maxSize =
+                    2 * 1024 * 1024;
+
+                if (
+                    !validTypes.includes(file.type) ||
+                    file.size > maxSize
+                ) {
+
+                    showError(
+                        input,
+                        errorEl,
+                        true
+                    );
+
                     input.value = '';
+
+                    preview.innerHTML = `
+                        <svg
+                            class="w-8 h-8 text-rose-400"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="1.5"
+                                d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                            />
+                        </svg>
+                    `;
+
                     return;
                 }
-                if (file.size > maxSize) {
-                    showError(input, errorEl, true);
-                    input.value = '';
-                    return;
-                }
 
-                showError(input, errorEl, false);
-                const reader = new FileReader();
+                showError(
+                    input,
+                    errorEl,
+                    false
+                );
+
+                const reader =
+                    new FileReader();
+
                 reader.onload = function (e) {
-                    preview.innerHTML = `<img src="${e.target.result}" class="w-full h-full object-cover" alt="Preview">`;
+
+                    preview.innerHTML = `
+                        <img
+                            src="${e.target.result}"
+                            class="w-full h-full object-cover rounded-2xl"
+                            alt="Preview"
+                        >
+                    `;
+
                 };
+
                 reader.readAsDataURL(file);
             }
         }
 
-        // Toggle password visibility
+
+        // =========================================
+        // PASSWORD VISIBILITY
+        // =========================================
+
         function togglePass(inputId, btn) {
-            const input = document.getElementById(inputId);
-            const icon = btn.querySelector('.eye-icon');
+
+            const input =
+                document.getElementById(inputId) ||
+                document.querySelector(
+                    `input[name="${inputId}"]`
+                );
+
+            const icon =
+                btn.querySelector('.eye-icon');
+
+            if (!input) return;
+
             if (input.type === 'password') {
+
                 input.type = 'text';
+
                 icon.innerHTML = `
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
-                          d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/>
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l18 18"
+                    />
                 `;
+
             } else {
+
                 input.type = 'password';
+
                 icon.innerHTML = `
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                    />
+
+                    <path
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        stroke-width="2"
+                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                    />
                 `;
+
             }
         }
 
-        // Helpers
-        function showError(input, errorEl, show) {
+
+        // =========================================
+        // UI FEEDBACK HELPER
+        // =========================================
+
+        function showError(
+            input,
+            errorEl,
+            show
+        ) {
+
+            if (!errorEl) return;
+
             if (show) {
-                input.classList.add('error');
-                input.classList.remove('success');
-                errorEl.classList.add('show');
+
+                if (input) {
+
+                    input.classList.add(
+                        'is-invalid'
+                    );
+
+                    input.classList.remove(
+                        'is-valid'
+                    );
+
+                }
+
+                errorEl.classList.remove(
+                    'hidden'
+                );
+
+                errorEl.classList.add(
+                    'flex'
+                );
+
             } else {
-                input.classList.remove('error');
-                input.classList.add('success');
-                errorEl.classList.remove('show');
+
+                if (input) {
+
+                    input.classList.remove(
+                        'is-invalid'
+                    );
+
+                    input.classList.add(
+                        'is-valid'
+                    );
+
+                }
+
+                errorEl.classList.remove(
+                    'flex'
+                );
+
+                errorEl.classList.add(
+                    'hidden'
+                );
+
             }
         }
 
-        function clearStatus(input, errorEl) {
-            input.classList.remove('error', 'success');
-            errorEl.classList.remove('show');
-        }
 
-        // Validation rules
+        // =========================================
+        // FIELD VALIDATORS
+        // =========================================
+
         const validators = {
+
             name: (val) => {
-                const trimmed = val.trim();
-                return trimmed.length >= 2 && /^[a-zA-Z\s.'-]+$/.test(trimmed);
+
+                const trimmed =
+                    (val || '').trim();
+
+                return (
+                    trimmed.length >= 2 &&
+                    /^[a-zA-Z\s.'-]+$/.test(
+                        trimmed
+                    )
+                );
+
             },
+
             contact: (val) => {
-             const cleaned = val.replace(/[\s\-()]/g, '');
-             return /^(97|98)\d{8}$/.test(cleaned);
+
+                const cleaned =
+                    (val || '').replace(
+                        /[\s\-()]/g,
+                        ''
+                    );
+
+                return /^(97|98)\d{8}$/.test(
+                    cleaned
+                );
+
             },
-            address: (val) => val.trim().length >= 5,
+
+            address: (val) => {
+
+                return (
+                    (val || '')
+                        .trim()
+                        .length >= 5
+                );
+
+            },
+
             dob: (val) => {
+
                 if (!val) return false;
-                const birth = new Date(val);
-                const today = new Date();
-                let age = today.getFullYear() - birth.getFullYear();
-                const m = today.getMonth() - birth.getMonth();
-                if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
-                return age >= 13 && age <= 120;
+
+                const birth =
+                    new Date(val);
+
+                const today =
+                    new Date();
+
+                let age =
+                    today.getFullYear() -
+                    birth.getFullYear();
+
+                const m =
+                    today.getMonth() -
+                    birth.getMonth();
+
+                if (
+                    m < 0 ||
+                    (
+                        m === 0 &&
+                        today.getDate() <
+                        birth.getDate()
+                    )
+                ) {
+                    age--;
+                }
+
+                return (
+                    age >= 13 &&
+                    age <= 120
+                );
+
             },
+
             gender: () => {
-                return document.querySelector('input[name="gender"]:checked') !== null;
+
+                return (
+                    document.querySelector(
+                        'input[name="gender"]:checked'
+                    ) !== null
+                );
+
             },
+
             email: (val) => {
-                return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val.trim());
+
+                return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(
+                    (val || '').trim()
+                );
+
             },
+
             password: (val) => {
-                // min 8 chars, 1 upper, 1 lower, 1 number, 1 special
-                return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/.test(val);
+
+                return /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]).{8,}$/.test(
+                    val || ''
+                );
+
             },
+
             confirm_password: (val) => {
-                return val === document.getElementById('id_password').value && val.length > 0;
+
+                const pwd =
+                    document.getElementById(
+                        'id_password'
+                    ) ||
+                    document.querySelector(
+                        'input[name="password"]'
+                    );
+
+                return (
+                    pwd &&
+                    val === pwd.value &&
+                    val.length > 0
+                );
+
             },
-            terms: () => document.getElementById('id_terms').checked,
+
+            terms: () => {
+
+                const el =
+                    document.getElementById(
+                        'id_terms'
+                    ) ||
+                    document.querySelector(
+                        'input[name="terms"]'
+                    );
+
+                return el
+                    ? el.checked
+                    : true;
+
+            },
+
             profile_picture: () => {
-                // Optional field – only validate if a file is selected
-                const input = document.getElementById('id_profile_picture');
-                if (!input.files || !input.files[0]) return true;
-                const file = input.files[0];
-                const validTypes = ['image/jpeg', 'image/png', 'image/webp'];
-                return validTypes.includes(file.type) && file.size <= 2 * 1024 * 1024;
+
+                const input =
+                    document.getElementById(
+                        'id_profile_picture'
+                    ) ||
+                    document.querySelector(
+                        'input[type="file"]'
+                    );
+
+                if (
+                    !input ||
+                    !input.files ||
+                    !input.files[0]
+                ) {
+                    return true;
+                }
+
+                const file =
+                    input.files[0];
+
+                const validTypes = [
+                    'image/jpeg',
+                    'image/png',
+                    'image/webp'
+                ];
+
+                return (
+                    validTypes.includes(
+                        file.type
+                    ) &&
+                    file.size <=
+                    2 * 1024 * 1024
+                );
+
             }
+
         };
 
-        // Live validation on blur / change
-        const fields = [
-            { id: 'id_name', key: 'name', errorId: 'error_name' },
-            { id: 'id_contact', key: 'contact', errorId: 'error_contact' },
-            { id: 'id_address', key: 'address', errorId: 'error_address' },
-            { id: 'id_dob', key: 'dob', errorId: 'error_dob' },
-            { id: 'id_email', key: 'email', errorId: 'error_email' },
-            { id: 'id_password', key: 'password', errorId: 'error_password' },
-            { id: 'id_confirm_password', key: 'confirm_password', errorId: 'error_confirm_password' },
+
+        // =========================================
+        // LIVE VALIDATION
+        // =========================================
+
+        const fieldMap = [
+
+            {
+                id: 'id_name',
+                nameAttr: 'name',
+                key: 'name',
+                errorId: 'error_name'
+            },
+
+            {
+                id: 'id_contact',
+                nameAttr: 'contact',
+                key: 'contact',
+                errorId: 'error_contact'
+            },
+
+            {
+                id: 'id_address',
+                nameAttr: 'address',
+                key: 'address',
+                errorId: 'error_address'
+            },
+
+            {
+                id: 'id_dob',
+                nameAttr: 'date_of_birth',
+                key: 'dob',
+                errorId: 'error_dob'
+            },
+
+            {
+                id: 'id_email',
+                nameAttr: 'email',
+                key: 'email',
+                errorId: 'error_email'
+            },
+
+            {
+                id: 'id_password',
+                nameAttr: 'password',
+                key: 'password',
+                errorId: 'error_password'
+            },
+
+            {
+                id: 'id_confirm_password',
+                nameAttr: 'confirm_password',
+                key: 'confirm_password',
+                errorId: 'error_confirm_password'
+            }
+
         ];
 
-        fields.forEach(({ id, key, errorId }) => {
-            const input = document.getElementById(id);
-            const errorEl = document.getElementById(errorId);
 
-            input.addEventListener('blur', () => {
-                const valid = validators[key](input.value);
-                showError(input, errorEl, !valid);
-            });
+        fieldMap.forEach(
+            ({
+                id,
+                nameAttr,
+                key,
+                errorId
+            }) => {
 
-            input.addEventListener('input', () => {
-                if (input.classList.contains('error') || input.classList.contains('success')) {
-                    const valid = validators[key](input.value);
-                    showError(input, errorEl, !valid);
+                const input =
+                    document.getElementById(id) ||
+                    document.querySelector(
+                        `[name="${nameAttr}"]`
+                    );
+
+                const errorEl =
+                    document.getElementById(
+                        errorId
+                    );
+
+                if (!input) return;
+
+
+                input.addEventListener(
+                    'blur',
+                    () => {
+
+                        const valid =
+                            validators[key](
+                                input.value
+                            );
+
+                        showError(
+                            input,
+                            errorEl,
+                            !valid
+                        );
+
+                    }
+                );
+
+
+                input.addEventListener(
+                    'input',
+                    () => {
+
+                        if (
+                            input.classList.contains(
+                                'is-invalid'
+                            ) ||
+                            input.classList.contains(
+                                'is-valid'
+                            )
+                        ) {
+
+                            const valid =
+                                validators[key](
+                                    input.value
+                                );
+
+                            showError(
+                                input,
+                                errorEl,
+                                !valid
+                            );
+
+                        }
+
+                    }
+                );
+
+            }
+        );
+
+
+        // =========================================
+        // GENDER VALIDATION
+        // =========================================
+
+        document
+            .querySelectorAll(
+                'input[name="gender"]'
+            )
+            .forEach(
+                radio => {
+
+                    radio.addEventListener(
+                        'change',
+                        () => {
+
+                            const errorEl =
+                                document.getElementById(
+                                    'error_gender'
+                                );
+
+                            showError(
+                                null,
+                                errorEl,
+                                false
+                            );
+
+                        }
+                    );
+
                 }
-            });
-        });
+            );
 
-        // Gender radios
-        document.querySelectorAll('input[name="gender"]').forEach(radio => {
-            radio.addEventListener('change', () => {
-                const errorEl = document.getElementById('error_gender');
-                errorEl.classList.remove('show');
-            });
-        });
 
-        // Terms checkbox
-        document.getElementById('id_terms').addEventListener('change', function () {
-            const errorEl = document.getElementById('error_terms');
-            if (this.checked) errorEl.classList.remove('show');
-        });
+        // =========================================
+        // TERMS CHECKBOX
+        // =========================================
 
-        // Re-validate confirm password when password changes
-        document.getElementById('id_password').addEventListener('input', () => {
-            const confirmInput = document.getElementById('id_confirm_password');
-            const errorEl = document.getElementById('error_confirm_password');
-            if (confirmInput.value) {
-                const valid = validators.confirm_password(confirmInput.value);
-                showError(confirmInput, errorEl, !valid);
-            }
-        });
+        const termsBox =
+            document.getElementById(
+                'id_terms'
+            ) ||
+            document.querySelector(
+                'input[name="terms"]'
+            );
 
-        // Form submit validation
-        document.getElementById('registerForm').addEventListener('submit', function (e) {
-            let isValid = true;
+        if (termsBox) {
 
-            // Text fields
-            fields.forEach(({ id, key, errorId }) => {
-                const input = document.getElementById(id);
-                const errorEl = document.getElementById(errorId);
-                const valid = validators[key](input.value);
-                showError(input, errorEl, !valid);
-                if (!valid) isValid = false;
-            });
+            termsBox.addEventListener(
+                'change',
+                function () {
 
-            // Gender
-            const genderValid = validators.gender();
-            const genderError = document.getElementById('error_gender');
-            if (!genderValid) {
-                genderError.classList.add('show');
-                isValid = false;
-            } else {
-                genderError.classList.remove('show');
-            }
+                    const errorEl =
+                        document.getElementById(
+                            'error_terms'
+                        );
 
-            // Terms
-            const termsValid = validators.terms();
-            const termsError = document.getElementById('error_terms');
-            if (!termsValid) {
-                termsError.classList.add('show');
-                isValid = false;
-            } else {
-                termsError.classList.remove('show');
-            }
+                    if (this.checked) {
 
-            // Profile picture (optional but validate if present)
-            const picInput = document.getElementById('id_profile_picture');
-            const picError = document.getElementById('error_profile_picture');
-            const picValid = validators.profile_picture();
-            if (!picValid) {
-                showError(picInput, picError, true);
-                isValid = false;
-            } else {
-                picError.classList.remove('show');
-            }
+                        showError(
+                            null,
+                            errorEl,
+                            false
+                        );
 
-            if (!isValid) {
-                e.preventDefault();
-                // Scroll to first error
-                const firstError = document.querySelector('.error-msg.show');
-                if (firstError) {
-                    firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }
+
                 }
-            }
-        });
+            );
+
+        }
+
+
+        // =========================================
+        // CONFIRM PASSWORD RECHECK
+        // =========================================
+
+        const pwdInput =
+            document.getElementById(
+                'id_password'
+            ) ||
+            document.querySelector(
+                'input[name="password"]'
+            );
+
+        if (pwdInput) {
+
+            pwdInput.addEventListener(
+                'input',
+                () => {
+
+                    const confirmInput =
+                        document.getElementById(
+                            'id_confirm_password'
+                        ) ||
+                        document.querySelector(
+                            'input[name="confirm_password"]'
+                        );
+
+                    const errorEl =
+                        document.getElementById(
+                            'error_confirm_password'
+                        );
+
+                    if (
+                        confirmInput &&
+                        confirmInput.value
+                    ) {
+
+                        const valid =
+                            validators.confirm_password(
+                                confirmInput.value
+                            );
+
+                        showError(
+                            confirmInput,
+                            errorEl,
+                            !valid
+                        );
+
+                    }
+
+                }
+            );
+
+        }
+
+
+        // =========================================
+        // FORM SUBMIT
+        // =========================================
+
+        const regForm =
+            document.getElementById(
+                'registerForm'
+            );
+
+        if (regForm) {
+
+            regForm.addEventListener(
+                'submit',
+                function (e) {
+
+                    let isValid = true;
+
+
+                    // Validate normal fields
+
+                    fieldMap.forEach(
+                        ({
+                            id,
+                            nameAttr,
+                            key,
+                            errorId
+                        }) => {
+
+                            const input =
+                                document.getElementById(id) ||
+                                document.querySelector(
+                                    `[name="${nameAttr}"]`
+                                );
+
+                            const errorEl =
+                                document.getElementById(
+                                    errorId
+                                );
+
+                            if (input) {
+
+                                const valid =
+                                    validators[key](
+                                        input.value
+                                    );
+
+                                showError(
+                                    input,
+                                    errorEl,
+                                    !valid
+                                );
+
+                                if (!valid) {
+                                    isValid = false;
+                                }
+
+                            }
+
+                        }
+                    );
+
+
+                    // Validate gender
+
+                    const genderValid =
+                        validators.gender();
+
+                    const genderError =
+                        document.getElementById(
+                            'error_gender'
+                        );
+
+                    showError(
+                        null,
+                        genderError,
+                        !genderValid
+                    );
+
+                    if (!genderValid) {
+                        isValid = false;
+                    }
+
+
+                    // Validate terms
+
+                    const termsValid =
+                        validators.terms();
+
+                    const termsError =
+                        document.getElementById(
+                            'error_terms'
+                        );
+
+                    showError(
+                        null,
+                        termsError,
+                        !termsValid
+                    );
+
+                    if (!termsValid) {
+                        isValid = false;
+                    }
+
+
+                    // Validate profile picture
+
+                    const picValid =
+                        validators.profile_picture();
+
+                    const picError =
+                        document.getElementById(
+                            'error_profile_picture'
+                        );
+
+                    const picEl =
+                        document.getElementById(
+                            'id_profile_picture'
+                        ) ||
+                        document.querySelector(
+                            'input[type="file"]'
+                        );
+
+                    showError(
+                        picEl,
+                        picError,
+                        !picValid
+                    );
+
+                    if (!picValid) {
+                        isValid = false;
+                    }
+
+
+                    // Prevent submission if invalid
+
+                    if (!isValid) {
+
+                        e.preventDefault();
+
+                        const firstError =
+                            document.querySelector(
+                                '.flex[id^="error_"]'
+                            );
+
+                        if (firstError) {
+
+                            firstError.scrollIntoView({
+                                behavior: 'smooth',
+                                block: 'center'
+                            });
+
+                        }
+
+                    }
+
+                }
+            );
+
+        }
+
     </script>
+
 </body>
+
 </html>

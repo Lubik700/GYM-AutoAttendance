@@ -1,67 +1,164 @@
 {% extends 'app/base.html' %}
 
-{% block title %}Trainers | FitTrack{% endblock %}
+{% block title %}Trainers & Coaches | FitTrack{% endblock %}
 
 {% block content %}
-<div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
+<div class="w-full max-w-6xl mx-auto space-y-8 pb-10">
 
-    <div class="mb-8">
-        <h1 class="font-display text-2xl sm:text-3xl font-bold text-gray tracking-tight">
-            Trainers
-        </h1>
-        <p class="text-gray-400 text-sm mt-1">
-            Meet the FitTrack coaching team
-        </p>
+    <!-- ========== PAGE HEADER ========== -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-2">
+        <div>
+            <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-semibold mb-2">
+                <!-- Whistle / Coach Icon -->
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                </svg>
+                Certified Fitness Coaches
+            </div>
+            <h1 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+                Meet the Trainers
+            </h1>
+            <p class="text-slate-400 text-sm mt-0.5">
+                Work alongside elite fitness experts, certified nutritionists, and strength coaches.
+            </p>
+        </div>
+
+        {% if trainers %}
+        <div class="self-start sm:self-auto px-3 py-1.5 rounded-xl bg-slate-900/80 border border-white/10 text-xs font-medium text-slate-400">
+            <span class="text-emerald-400 font-bold">{{ trainers|length }}</span> active coach{{ trainers|length|pluralize:"es" }}
+        </div>
+        {% endif %}
     </div>
 
+    <!-- ========== TRAINERS GRID ========== -->
     {% if trainers %}
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {% for trainer in trainers %}
-            <div class="bg-dark-card border border-gray/5 rounded-2xl overflow-hidden hover:border-gray/10 transition-all duration-200">
+            <article class="relative overflow-hidden bg-slate-900/80 backdrop-blur-xl border border-white/[0.08] hover:border-emerald-500/40 rounded-2xl flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 shadow-xl hover:shadow-2xl hover:shadow-emerald-950/20 group">
 
-                <div class="h-48 bg-dark-bg flex items-center justify-center overflow-hidden">
-                    {% if trainer.photo %}
-                        <img src="{{ trainer.photo.url }}" alt="{{ trainer.name }}" class="w-full h-full object-cover">
-                    {% else %}
-                        <svg class="w-16 h-16 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-                        </svg>
-                    {% endif %}
-                </div>
-
-                <div class="p-5">
-                    <h3 class="font-display text-lg font-semibold text-black mb-1">{{ trainer.name }}</h3>
-                    <span class="inline-block text-[11px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-md bg-primary/15 text-primary border border-primary/25 mb-3">
-                        {{ trainer.get_specialization_display }}
-                    </span>
-
-                    <p class="text-gray-400 text-sm leading-relaxed mb-3">
-                        {{ trainer.bio|default:"" }}
-                    </p>
-
-                    <div class="space-y-1.5 text-xs text-gray-500 pt-3 border-t border-gray/5">
-                        <p>{{ trainer.experience_years }} years experience</p>
-                        {% if trainer.certifications %}
-                            <p>Certified: {{ trainer.certifications }}</p>
+                <div>
+                    <!-- Trainer Photo with Gradient Overlay -->
+                    <div class="relative h-56 bg-slate-800/80 overflow-hidden">
+                        {% if trainer.photo %}
+                            <img src="{{ trainer.photo.url }}"
+                                 alt="{{ trainer.name }}"
+                                 loading="lazy"
+                                 class="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-500">
+                        {% else %}
+                            <div class="w-full h-full flex flex-col items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-slate-600">
+                                <div class="w-16 h-16 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-slate-500 mb-2">
+                                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                                              d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
+                                    </svg>
+                                </div>
+                                <span class="text-xs text-slate-500 font-medium">No photo available</span>
+                            </div>
                         {% endif %}
-                        {% if trainer.available_days %}
-                            <p>Available: {{ trainer.available_days }}</p>
-                        {% endif %}
-                        {% if trainer.contact %}
-                            <p>Contact: {{ trainer.contact }}</p>
+
+                        <!-- Subtle bottom scrim gradient for clean visual transition -->
+                        <div class="absolute inset-x-0 bottom-0 h-20 bg-gradient-to-t from-slate-900 via-slate-900/60 to-transparent"></div>
+
+                        <!-- Specialization Pill Floating Over Image -->
+                        <div class="absolute bottom-3 left-4">
+                            <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[11px] font-bold uppercase tracking-wider bg-slate-950/90 backdrop-blur-md text-emerald-400 border border-emerald-500/30 shadow-md">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                                {{ trainer.get_specialization_display }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Details Body -->
+                    <div class="p-5 sm:p-6 space-y-4">
+                        <div>
+                            <h2 class="text-lg font-bold text-white group-hover:text-emerald-300 transition-colors tracking-tight">
+                                {{ trainer.name }}
+                            </h2>
+                            <p class="text-xs font-semibold text-slate-400 mt-0.5">
+                                {{ trainer.experience_years }} year{{ trainer.experience_years|pluralize }} coaching experience
+                            </p>
+                        </div>
+
+                        <!-- Bio -->
+                        {% if trainer.bio %}
+                            <p class="text-xs sm:text-sm text-slate-300 leading-relaxed line-clamp-3">
+                                {{ trainer.bio }}
+                            </p>
                         {% endif %}
                     </div>
                 </div>
-            </div>
+
+                <!-- Structured Key Info / Contact Section -->
+                <div class="p-5 sm:p-6 pt-0 space-y-2.5">
+                    <div class="space-y-2 text-xs text-slate-300 pt-3 border-t border-white/[0.08]">
+
+                        <!-- Certifications -->
+                        {% if trainer.certifications %}
+                            <div class="flex items-start gap-2">
+                                <svg class="w-4 h-4 text-emerald-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                                </svg>
+                                <div>
+                                    <span class="text-slate-500 font-medium">Certified:</span>
+                                    <span class="text-slate-200 font-semibold ml-1">{{ trainer.certifications }}</span>
+                                </div>
+                            </div>
+                        {% endif %}
+
+                        <!-- Available Days -->
+                        {% if trainer.available_days %}
+                            <div class="flex items-start gap-2">
+                                <svg class="w-4 h-4 text-teal-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                </svg>
+                                <div>
+                                    <span class="text-slate-500 font-medium">Schedule:</span>
+                                    <span class="text-slate-200 font-semibold ml-1">{{ trainer.available_days }}</span>
+                                </div>
+                            </div>
+                        {% endif %}
+
+                        <!-- Direct Contact -->
+                        {% if trainer.contact %}
+                            <div class="flex items-center gap-2 pt-1">
+                                <svg class="w-4 h-4 text-emerald-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+                                </svg>
+                                <div class="min-w-0 flex-1 truncate">
+                                    <span class="text-slate-500 font-medium">Contact:</span>
+                                    <a href="tel:{{ trainer.contact }}" class="text-emerald-400 hover:text-emerald-300 font-semibold ml-1 hover:underline">
+                                        {{ trainer.contact }}
+                                    </a>
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+            </article>
             {% endfor %}
         </div>
     {% else %}
-        <div class="bg-dark-card border border-gray/5 rounded-2xl p-12 text-center">
-            <h3 class="font-display text-lg font-semibold text-gray mb-1">No trainers listed yet</h3>
-            <p class="text-gray-400 text-sm max-w-sm mx-auto">
-                Trainer profiles will appear here once added by the gym.
+        <!-- ========== EMPTY STATE ========== -->
+        <div class="bg-slate-900/80 backdrop-blur-xl border border-white/[0.08] rounded-2xl p-10 sm:p-14 text-center shadow-xl">
+            <div class="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 mb-4 shadow-inner">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"
+                          d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                </svg>
+            </div>
+            <h3 class="text-lg font-bold text-white mb-1.5 tracking-tight">No trainers listed yet</h3>
+            <p class="text-slate-400 text-sm max-w-sm mx-auto leading-relaxed">
+                Trainer profiles will appear here once registered by gym administration.
             </p>
+            <div class="mt-6">
+                <a href="{% url 'home' %}" class="inline-flex items-center gap-2 text-xs font-bold text-slate-950 bg-emerald-400 hover:bg-emerald-300 px-4 py-2.5 rounded-xl shadow-md transition-all active:scale-95">
+                    <span>Back to Dashboard</span>
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                    </svg>
+                </a>
+            </div>
         </div>
     {% endif %}
 
