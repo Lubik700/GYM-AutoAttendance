@@ -2,6 +2,13 @@
 {% block title %}Members | FitTrack Admin{% endblock %}
 
 {% block content %}
+<div class="flex gap-2 mb-4">
+    {% for value, label in status_tabs %}{% endfor %}
+    <a href="?q={{ query }}" class="text-xs px-3 py-1.5 rounded-lg border border-white/10 {% if not status_filter %}bg-primary/15 text-primary{% else %}text-gray-400{% endif %}">All</a>
+    <a href="?q={{ query }}&status=active" class="text-xs px-3 py-1.5 rounded-lg border border-white/10 {% if status_filter == 'active' %}bg-primary/15 text-primary{% else %}text-gray-400{% endif %}">Active</a>
+    <a href="?q={{ query }}&status=pending" class="text-xs px-3 py-1.5 rounded-lg border border-white/10 {% if status_filter == 'pending' %}bg-primary/15 text-primary{% else %}text-gray-400{% endif %}">Pending</a>
+    <a href="?q={{ query }}&status=inactive" class="text-xs px-3 py-1.5 rounded-lg border border-white/10 {% if status_filter == 'inactive' %}bg-primary/15 text-primary{% else %}text-gray-400{% endif %}">Inactive</a>
+</div>
 <div class="flex items-center justify-between mb-6 gap-4 flex-wrap">
     <h1 class="font-display text-2xl font-bold">Members</h1>
     <div class="flex items-center gap-3">
@@ -33,19 +40,26 @@
             <tr class="hover:bg-white/[0.02]">
                 <td class="px-5 py-3 text-white">{{ entry.user.profile.name|default:entry.user.username }}</td>
                 <td class="px-5 py-3 text-gray-400">{{ entry.user.email }}</td>
-                <td class="px-5 py-3 text-gray-400">
-                    {% if entry.latest_sub %}{{ entry.latest_sub.package.name }}{% else %}—{% endif %}
-                </td>
-                <td class="px-5 py-3 text-gray-400">
-                    {% if entry.latest_sub %}{{ entry.latest_sub.end_date|date:"d M Y" }}{% else %}—{% endif %}
-                </td>
-                <td class="px-5 py-3">
-                    {% if entry.user.is_active %}
-                        <span class="text-xs text-green-400">Active</span>
-                    {% else %}
-                        <span class="text-xs text-red-400">Pending</span>
-                    {% endif %}
-                </td>
+               
+              <td class="px-5 py-3 text-gray-400">
+    {% if entry.info.latest %}{{ entry.info.latest.package.name }}{% else %}—{% endif %}
+</td>
+<td class="px-5 py-3 text-gray-400">
+    {% if entry.info.latest %}{{ entry.info.latest.end_date|date:"d M Y" }}{% else %}—{% endif %}
+</td>
+<td class="px-5 py-3">
+    {% if entry.info.status == 'active' %}
+        {% if entry.info.in_grace %}
+            <span class="text-xs text-orange-400">Active · Grace period</span>
+        {% else %}
+            <span class="text-xs text-green-400">Active</span>
+        {% endif %}
+    {% elif entry.info.status == 'inactive' %}
+        <span class="text-xs text-red-400">Inactive</span>
+    {% else %}
+        <span class="text-xs text-yellow-400">Pending</span>
+    {% endif %}
+</td>
                 <td class="px-5 py-3 text-right">
                     <a href="{% url 'admin_member_detail' entry.user.id %}" class="text-xs text-primary hover:text-red-400">View →</a>
                 </td>

@@ -34,11 +34,12 @@
         <div><p class="text-xs text-gray-500">Gender</p><p class="text-sm text-white">{{ profile.get_gender_display|default:"—" }}</p></div>
         <div class="col-span-2"><p class="text-xs text-gray-500">Address</p><p class="text-sm text-white">{{ profile.address|default:"—" }}</p></div>
         <div><p class="text-xs text-gray-500">Joined</p><p class="text-sm text-white">{{ member.date_joined|date:"d M Y" }}</p></div>
-        <div><p class="text-xs text-gray-500">Account Status</p>
-            <p class="text-sm {% if member.is_active %}text-green-400{% else %}text-red-400{% endif %}">
-                {% if member.is_active %}Active{% else %}Pending Approval{% endif %}
-            </p>
-        </div>
+        <div>
+    <p class="text-xs text-gray-500">Status</p>
+    <p class="text-sm {% if member_status.status == 'active' %}text-green-400{% elif member_status.status == 'inactive' %}text-red-400{% else %}text-yellow-400{% endif %}">
+        {{ member_status.status|title }}{% if member_status.in_grace %} (grace period){% endif %}
+    </p>
+</div>
     </div>
 </div>
 

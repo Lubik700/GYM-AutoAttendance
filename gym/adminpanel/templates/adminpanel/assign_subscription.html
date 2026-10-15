@@ -16,10 +16,12 @@
             <label class="block text-sm font-medium text-gray-300 mb-1.5">Payment Method</label>
             {{ form.payment_method }}
         </div>
-        <div class="flex items-center gap-2.5">
-            {{ form.start_from_today }}
-            <label class="text-sm text-gray-300">{{ form.start_from_today.label }}</label>
-        </div>
+        {% if member_status.latest and member_status.days_left >= 0 %}
+<div class="flex items-center gap-2.5">
+    {{ form.start_from_today }}
+    <label class="text-sm text-gray-300">{{ form.start_from_today.label }}</label>
+</div>
+{% endif %}
         <p class="text-xs text-gray-500">
             If the member has an active subscription, the new one extends from its expiry date by default.
             Check the box above to start fresh from today instead (e.g. if switching plans).

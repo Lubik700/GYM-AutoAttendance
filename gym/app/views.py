@@ -186,7 +186,7 @@ def register_view(request):
         form = RegisterForm()
     return render(request, 'app/register.html', {'form': form})
 
-
+from .utils import get_subscription_status, get_renewal_info
 @login_required
 def membership_view(request):
     packages = MembershipPackage.objects.filter(is_active=True)
@@ -196,6 +196,7 @@ def membership_view(request):
         'packages': packages,
         'sub_status': status,
         'history': history,
+        'renewal': get_renewal_info(request.user),
     })
 
 
@@ -608,6 +609,13 @@ def esewa_registration_failure(request):
 
 @login_required
 def esewa_initiate(request, package_id):
+    renewal = get_renewal_info(request.user)
+    if not renewal['can_renew']:
+        messages.error(
+            request,
+            f"Your membership is still active. You can renew from {renewal['opens_on']:%d %b %Y}."
+        )
+        return redirect('membership')
     package = get_object_or_404(MembershipPackage, id=package_id, is_active=True)
     transaction_uuid = f"{request.user.id}-{uuid.uuid4().hex[:10]}"
     amount = package.price

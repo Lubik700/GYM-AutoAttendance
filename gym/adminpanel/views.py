@@ -27,19 +27,26 @@ def admin_login_view(request):
 
 @staff_required
 def admin_dashboard(request):
-    context = {
-        'pending_count': User.objects.filter(is_active=False).count(),
-        'active_members': User.objects.filter(is_active=True, is_staff=False).count(),
-        'total_notices': Notice.objects.count(),
-    }
-    return render(request, 'adminpanel/dashboard.html', context)
+    counts = {'pending': 0, 'active': 0, 'inactive': 0}
+    for user in User.objects.filter(is_staff=False):
+        counts[get_member_status(user)['status']] += 1
 
+    return render(request, 'adminpanel/dashboard.html', {
+        'pending_count': counts['pending'],
+        'active_members': counts['active'],
+        'inactive_members': counts['inactive'],
+        'total_notices': Notice.objects.count(),
+    })
+
+from app.utils import get_member_status
 
 @staff_required
 def admin_pending(request):
-    pending_users = User.objects.filter(is_active=False).select_related('profile')
+    pending_users = (User.objects
+                     .filter(is_staff=False, subscriptions__isnull=True)
+                     .select_related('profile')
+                     .order_by('-date_joined'))
     return render(request, 'adminpanel/pending.html', {'pending_users': pending_users})
-
 
 @staff_required
 def admin_approve_user(request, user_id):
@@ -107,22 +114,25 @@ from app.forms import TrainerForm, MembershipPackageForm  # defined below
 @staff_required
 def admin_members(request):
     query = request.GET.get('q', '').strip()
-    members = User.objects.filter(is_staff=False).select_related('profile').order_by('-date_joined')
+    status_filter = request.GET.get('status', '')
 
+    members = User.objects.filter(is_staff=False).select_related('profile').order_by('-date_joined')
     if query:
         members = members.filter(
-            Q(username__icontains=query) |
-            Q(email__icontains=query) |
-            Q(profile__name__icontains=query) |
-            Q(profile__contact__icontains=query)
+            Q(username__icontains=query) | Q(email__icontains=query) |
+            Q(profile__name__icontains=query) | Q(profile__contact__icontains=query)
         )
 
     member_data = []
     for user in members:
-        latest_sub = Subscription.objects.filter(user=user).order_by('-end_date').first()
-        member_data.append({'user': user, 'latest_sub': latest_sub})
+        info = get_member_status(user)
+        if status_filter and info['status'] != status_filter:
+            continue
+        member_data.append({'user': user, 'info': info})
 
-    return render(request, 'adminpanel/members.html', {'member_data': member_data, 'query': query})
+    return render(request, 'adminpanel/members.html', {
+        'member_data': member_data, 'query': query, 'status_filter': status_filter,
+    })
 
 
 @staff_required
@@ -304,9 +314,10 @@ def admin_assign_subscription(request, user_id):
     else:
         form = AssignSubscriptionForm()
 
-    return render(request, 'adminpanel/assign_subscription.html', {
+        return render(request, 'adminpanel/assign_subscription.html', {
         'form': form,
         'member': member,
+        'member_status': get_member_status(member),
     })
 
 

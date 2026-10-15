@@ -274,16 +274,15 @@ from .models import MembershipPackage
 class AssignSubscriptionForm(forms.Form):
     package = forms.ModelChoiceField(
         queryset=MembershipPackage.objects.filter(is_active=True),
+        empty_label="Select membership package",
         widget=forms.Select(attrs={'class': 'admin-input'})
     )
     payment_method = forms.ChoiceField(
-        choices=(('cash', 'Cash (In-Person)'), ('esewa', 'eSewa')),
-        initial='cash',
+        choices=[('', 'Select payment method'), ('cash', 'Cash (In-Person)'), ('esewa', 'eSewa')],
         widget=forms.Select(attrs={'class': 'admin-input'})
     )
     start_from_today = forms.BooleanField(
         required=False,
-        initial=False,
         label="Start from today (instead of extending current expiry)"
     )
 
