@@ -249,6 +249,7 @@ class BMIRecord(models.Model):
     bmi = models.FloatField(editable=False)
     bmi_category = models.CharField(max_length=20, editable=False)
     recorded_at = models.DateTimeField(auto_now_add=True)
+    days_per_week = models.PositiveSmallIntegerField(default=4)
 
     class Meta:
         ordering = ['-recorded_at']
@@ -274,3 +275,18 @@ class BMIRecord(models.Model):
 
     def __str__(self):
         return f"{self.user.username} - BMI {self.bmi} ({self.bmi_category})"
+
+
+
+
+class ExpiryReminder(models.Model):
+    subscription = models.ForeignKey(Subscription, on_delete=models.CASCADE, related_name='reminders')
+    stage = models.PositiveSmallIntegerField(help_text="5 = first reminder, 1 = final reminder")
+    expiry_date = models.DateField()
+    sent_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('subscription', 'stage', 'expiry_date')
+
+    def __str__(self):
+        return f"{self.subscription} - stage {self.stage}"

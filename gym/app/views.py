@@ -15,7 +15,7 @@ from django.contrib import messages
 from .forms import LoginForm, RegisterForm
 from .models import Profile,MembershipPackage,Subscription
 from .decorators import staff_required
-
+from django.views.decorators.http import require_POST
 from django.shortcuts import render, redirect
 from django.contrib.auth.models import User
 from django.contrib import messages
@@ -29,11 +29,19 @@ from django.contrib.auth import logout
 from .models import Equipment
 from .models import Trainer
 from .utils import get_subscription_status
-
+from .ai_planner import generate_plan_data, save_plan_data
+from django.utils import timezone
+from .membership import is_membership_blocked, mark_for_renewal, latest_subscription
 
 from django.shortcuts import render, redirect
+from django.utils.http import url_has_allowed_host_and_scheme
+from .membership import is_membership_blocked, mark_for_renewal, latest_subscription
+
 
 def login_view(request):
+    renew_prompt = False
+    expired_on = None
+
     if request.method == 'POST':
         form = LoginForm(request.POST)
         if form.is_valid():
@@ -43,25 +51,60 @@ def login_view(request):
 
             try:
                 user_obj = User.objects.get(Q(username=identifier) | Q(email=identifier))
-            except User.DoesNotExist:
+            except (User.DoesNotExist, User.MultipleObjectsReturned):
                 user_obj = None
 
             if user_obj and user_obj.check_password(password):
                 if not user_obj.is_active:
                     form.add_error(None, "Your account isn't active yet. If you didn't complete payment during registration, please register again or contact the gym.")
 
+                elif is_membership_blocked(user_obj):
+                    # Password is correct but the membership ended more than 5 days ago:
+                    # do NOT log in; show the expired message with a Renew button.
+                    mark_for_renewal(request, user_obj)
+                    renew_prompt = True
+                    expired_on = latest_subscription(user_obj).end_date
+
                 else:
                     user_obj.backend = 'app.backends.EmailOrUsernameBackend'
                     login(request, user_obj)
                     request.session.set_expiry(60 * 60 * 24 * 30 if remember_me else 0)
+
                     next_url = request.POST.get('next') or request.GET.get('next') or 'home'
+                    if not url_has_allowed_host_and_scheme(
+                        next_url, allowed_hosts={request.get_host()}, require_https=request.is_secure()
+                    ):
+                        next_url = 'home'
                     return redirect(next_url)
             else:
                 form.add_error(None, "Invalid username/email or password.")
     else:
         form = LoginForm()
+
     next_url = request.GET.get('next', '')
-    return render(request, 'app/login.html', {'form': form, 'next': next_url})
+    return render(request, 'app/login.html', {
+        'form': form,
+        'next': next_url,
+        'renew_prompt': renew_prompt,
+        'expired_on': expired_on,
+    })
+
+
+from django.conf import settings
+from django.contrib.auth import login
+from django.views.decorators.http import require_POST
+from .membership import pop_renewal_user
+@require_POST
+def start_renewal(request):
+    user = pop_renewal_user(request)
+    if user is None:
+        messages.error(request, "Your renewal session expired. Please log in again.")
+        return redirect('login')
+
+    login(request, user, backend='app.backends.EmailOrUsernameBackend')
+    request.session.set_expiry(0)   # browser-session only; no "remember me" for a locked account
+    messages.info(request, "Choose a package below to renew your membership.")
+    return redirect('membership')
 
 from django.utils import timezone
 from .models import BMIRecord, WorkoutPlan, Notice
@@ -252,25 +295,25 @@ def workout_plan_view(request):
     })
 
 
-@login_required
-def suggest_workout_plan(request):
-    plan, _ = WorkoutPlan.objects.get_or_create(user=request.user)
+# @login_required
+# def suggest_workout_plan(request):
+#     plan, _ = WorkoutPlan.objects.get_or_create(user=request.user)
 
-    if plan.days.exists():
-        messages.info(request, "You already have a workout plan. Clear it first if you want to reset to the suggested routine.")
-        return redirect('app/workout_plan')
+#     if plan.days.exists():
+#         messages.info(request, "You already have a workout plan. Clear it first if you want to reset to the suggested routine.")
+#         return redirect('app/workout_plan')
 
-    for day_key, (focus, exercises) in DEFAULT_ROUTINE.items():
-        is_rest = focus is None
-        day_obj = WorkoutDay.objects.create(
-            plan=plan, day=day_key, focus=focus or '', is_rest_day=is_rest
-        )
-        if exercises:
-            for i, (name, sets, reps) in enumerate(exercises):
-                Exercise.objects.create(day=day_obj, name=name, sets=sets, reps=reps, order=i)
+#     for day_key, (focus, exercises) in DEFAULT_ROUTINE.items():
+#         is_rest = focus is None
+#         day_obj = WorkoutDay.objects.create(
+#             plan=plan, day=day_key, focus=focus or '', is_rest_day=is_rest
+#         )
+#         if exercises:
+#             for i, (name, sets, reps) in enumerate(exercises):
+#                 Exercise.objects.create(day=day_obj, name=name, sets=sets, reps=reps, order=i)
 
-    messages.success(request, "Suggested workout plan added. Feel free to customize it.")
-    return redirect('workout_plan')
+#     messages.success(request, "Suggested workout plan added. Feel free to customize it.")
+#     return redirect('workout_plan')
 
 
 @login_required
@@ -424,10 +467,19 @@ from .models import BMIRecord, WorkoutPlan, WorkoutDay, Exercise
 from .forms import BMIForm
 from .recommendation import get_recommendation
 
+def normalize_experience(value):
+    """Handles 'beginner' style values and the dataset's 1/2/3 style."""
+    v = str(value or '').strip().lower()
+    if v in VALID_EXPERIENCE:
+        return v
+    return {'1': 'beginner', '2': 'intermediate', '3': 'advanced'}.get(v, 'beginner')
+
+
 @login_required
 def bmi_calculator_view(request):
     recommendation = None
-    latest_record = BMIRecord.objects.filter(user=request.user).first()
+    previous = BMIRecord.objects.filter(user=request.user).first()   # newest entry before this request
+    latest_record = previous
 
     if request.method == 'POST':
         form = BMIForm(request.POST)
@@ -435,24 +487,55 @@ def bmi_calculator_view(request):
             record = form.save(commit=False)
             record.user = request.user
             record.save()
-            predicted_type = predict_workout_type(
-              age=record.age,
-              gender=request.user.profile.gender,   # stored as 'male'/'female', normalized inside predict_workout_type
-              bmi=record.bmi,
-              experience_level=record.experience_level,
-                )
-            recommendation = get_recommendation_by_type(predicted_type)
-            # recommendation = get_recommendation(record.bmi_category, record.goal)
-            request.session['pending_recommendation'] = recommendation
             latest_record = record
+
+            bmi = float(record.bmi)
+            category = bmi_category_for(bmi)
+            recommendation = get_recommendation(category, record.goal)   # preview card
+
+            if request.POST.get('update_plan'):
+                plan, _ = WorkoutPlan.objects.get_or_create(user=request.user)
+                source = create_plan_for_member(
+                    plan,
+                    bmi=bmi,
+                    bmi_category=category,
+                    goal=record.goal,
+                    age=record.age,
+                    experience=normalize_experience(record.experience_level),
+                    days_per_week=min(max(int(record.days_per_week or 4), 2), 6),
+                )
+                label = "AI plan" if source == 'ai' else "Updated plan"
+                messages.success(request, f"{label} generated from your new BMI ({bmi:.1f}).")
+            elif previous and (
+                bmi_category_for(float(previous.bmi)) != category or previous.goal != record.goal
+            ):
+                messages.info(
+                    request,
+                    "Your BMI category or goal changed, so your current plan may no longer fit. "
+                    "Log another entry with the update option ticked to refresh it."
+                )
     else:
-        form = BMIForm()
+        initial = {}
+        if previous:
+            initial = {
+                'height_cm': previous.height_cm,
+                'weight_kg': previous.weight_kg,
+                'age': previous.age,
+                'activity_level': previous.activity_level,
+                'goal': previous.goal,
+                'experience_level': previous.experience_level,
+                'days_per_week': previous.days_per_week,
+            }
+        form = BMIForm(initial=initial)
 
     return render(request, 'app/bmi_calculator.html', {
         'form': form,
         'latest_record': latest_record,
         'recommendation': recommendation,
-        'history': BMIRecord.objects.filter(user=request.user)[1:6],  # past records excluding latest
+        'history': BMIRecord.objects.filter(user=request.user)[1:6],
+        'has_plan': WorkoutDay.objects.filter(plan__user=request.user).exists(),
+        'last_category': bmi_category_for(float(previous.bmi)) if previous else '',
+        'last_goal': previous.goal if previous else '',
     })
 
 
@@ -490,28 +573,33 @@ from .ml_utils import predict_workout_type
 #     })
 
 @login_required
+@require_POST
 def apply_recommended_plan(request):
-    recommendation = request.session.get('pending_recommendation')
-    if not recommendation:
-        messages.error(request, "No recommendation found. Please calculate your BMI first.")
-        return redirect('bmi_calculator')
-
     plan, _ = WorkoutPlan.objects.get_or_create(user=request.user)
 
-    if plan.days.exists():
-        messages.warning(request, "You already have a workout plan. Clear it first to apply a new recommendation.")
-        return redirect('workout_plan')
+    try:
+        bmi = float(request.POST['bmi'])
+        age = int(request.POST['age'])
+        days_per_week = min(max(int(request.POST.get('days_per_week', 4)), 2), 6)
+        if not (8 <= bmi <= 70):
+            raise ValueError
+    except (KeyError, ValueError):
+        messages.error(request, "Could not read your BMI details. Please recalculate.")
+        return redirect('bmi_calculator')
 
-    for day_key, (focus, exercises) in recommendation['routine'].items():
-        is_rest = focus is None
-        day_obj = WorkoutDay.objects.create(plan=plan, day=day_key, focus=focus or '', is_rest_day=is_rest)
-        if exercises:
-            for i, (name, sets, reps) in enumerate(exercises):
-                Exercise.objects.create(day=day_obj, name=name, sets=sets, reps=reps, order=i)
+    goal = request.POST.get('goal', 'maintain')
+    if goal not in VALID_GOALS:
+        goal = 'maintain'
+    experience = normalize_experience(request.POST.get('experience'))
+    bmi_category = bmi_category_for(bmi)   # recomputed on the server, not trusted from the form
 
-    messages.success(request, f"{recommendation['plan_name']} applied to your workout plan!")
+    source = create_plan_for_member(
+        plan, bmi=bmi, bmi_category=bmi_category, goal=goal,
+        age=age, experience=experience, days_per_week=days_per_week,
+    )
+    label = "AI plan" if source == 'ai' else "Recommended plan"
+    messages.success(request, f"{label} applied to your routine. Feel free to customize it.")
     return redirect('workout_plan')
-
 
 import hmac, hashlib, base64, uuid, json
 from datetime import timedelta
@@ -707,3 +795,236 @@ def bmi_progress_view(request):
     })
 
 
+# import logging
+# from django.contrib import messages
+# from django.contrib.auth.decorators import login_required
+# from django.db import transaction
+# from django.shortcuts import redirect
+# from django.views.decorators.http import require_POST
+
+# from .models import WorkoutPlan, WorkoutDay, Exercise
+# from .recommendation import get_recommendation
+# from .ai_planner import generate_plan_data, save_plan_data
+
+# logger = logging.getLogger(__name__)
+
+# VALID_GOALS = {'gain', 'maintain', 'lose'}
+
+
+# def bmi_category_for(bmi):
+#     if bmi < 18.5:
+#         return 'Underweight'
+#     if bmi < 25:
+#         return 'Normal'
+#     if bmi < 30:
+#         return 'Overweight'
+#     return 'Obese'
+
+
+# def save_rule_based(plan, rec):
+#     """Saves a WORKOUT_RECOMMENDATIONS routine into the plan."""
+#     with transaction.atomic():
+#         for day_key, (focus, exercises) in rec['routine'].items():
+#             day_obj = WorkoutDay.objects.create(
+#                 plan=plan, day=day_key, focus=focus or '', is_rest_day=focus is None
+#             )
+#             for i, (name, sets, reps) in enumerate(exercises or []):
+#                 Exercise.objects.create(day=day_obj, name=name, sets=sets, reps=reps, order=i)
+
+
+# @login_required
+# @require_POST
+# def suggest_workout_plan(request):
+#     plan, _ = WorkoutPlan.objects.get_or_create(user=request.user)
+
+#     if plan.days.exists():
+#         messages.info(request, "You already have a workout plan. Clear it first if you want a new suggestion.")
+#         return redirect('workout_plan')
+
+#     try:
+#         height_m = float(request.POST['height_cm']) / 100
+#         weight = float(request.POST['weight_kg'])
+#         age = int(request.POST['age'])
+#         days_per_week = min(max(int(request.POST.get('days_per_week', 4)), 2), 6)
+#         if not (1.2 <= height_m <= 2.3 and 30 <= weight <= 250):
+#             raise ValueError
+#     except (KeyError, ValueError):
+#         messages.error(request, "Please enter a valid height, weight and age.")
+#         return redirect('workout_plan')
+
+#     goal = request.POST.get('goal', 'maintain')
+#     if goal not in VALID_GOALS:
+#         goal = 'maintain'
+#     experience = request.POST.get('experience', 'beginner')
+#     if experience not in {'beginner', 'intermediate', 'advanced'}:
+#         experience = 'beginner'
+
+#     bmi = weight / (height_m ** 2)
+#     bmi_category = bmi_category_for(bmi)
+
+#     try:
+#         data = generate_plan_data(
+#             age=age, gender=None, bmi=bmi, bmi_category=bmi_category,
+#             experience=experience, goal=goal, days_per_week=days_per_week,
+#         )
+#         save_plan_data(plan, data)
+#         messages.success(request, f"AI plan created for your goal (BMI {bmi:.1f}, {bmi_category}). Feel free to customize it.")
+#     except Exception:
+#         logger.exception("AI plan failed, using rule-based fallback")
+#         plan.days.all().delete()
+#         save_rule_based(plan, get_recommendation(bmi_category, goal))
+#         messages.success(request, f"Suggested plan created (BMI {bmi:.1f}, {bmi_category}). Feel free to customize it.")
+
+#     return redirect('workout_plan')
+
+
+
+# def create_plan_for_member(plan, *, bmi, bmi_category, goal, age, experience, days_per_week):
+#     """AI plan first, rule-based fallback. Returns 'ai' or 'rule'."""
+#     try:
+#         data = generate_plan_data(
+#             age=age, gender=None, bmi=bmi, bmi_category=bmi_category,
+#             experience=experience, goal=goal, days_per_week=days_per_week,
+#         )
+#         save_plan_data(plan, data)
+#         return 'ai'
+#     except Exception:
+#         logger.exception("AI plan failed, using rule-based fallback")
+#         plan.days.all().delete()
+#         save_rule_based(plan, get_recommendation(bmi_category, goal))
+#         return 'rule'
+
+
+
+
+import logging
+
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.db import transaction
+from django.shortcuts import redirect
+from django.views.decorators.http import require_POST
+
+from .models import WorkoutPlan, WorkoutDay, Exercise
+from .recommendation import get_recommendation
+from .ai_planner import generate_plan_data, save_plan_data
+
+logger = logging.getLogger(__name__)
+
+VALID_GOALS = {'gain', 'maintain', 'lose'}
+VALID_EXPERIENCE = {'beginner', 'intermediate', 'advanced'}
+
+
+def bmi_category_for(bmi):
+    if bmi < 18.5:
+        return 'Underweight'
+    if bmi < 25:
+        return 'Normal'
+    if bmi < 30:
+        return 'Overweight'
+    return 'Obese'
+
+
+def save_rule_based(plan, rec):
+    """Saves a WORKOUT_RECOMMENDATIONS routine into the plan."""
+    with transaction.atomic():
+        for day_key, (focus, exercises) in rec['routine'].items():
+            day_obj = WorkoutDay.objects.create(
+                plan=plan, day=day_key, focus=focus or '', is_rest_day=focus is None
+            )
+            for i, (name, sets, reps) in enumerate(exercises or []):
+                Exercise.objects.create(day=day_obj, name=name, sets=sets, reps=reps, order=i)
+
+
+def create_plan_for_member(plan, *, bmi, bmi_category, goal, age, experience, days_per_week):
+    """AI plan first, rule-based fallback. Returns 'ai' or 'rule'."""
+    try:
+        data = generate_plan_data(
+            age=age, gender=None, bmi=bmi, bmi_category=bmi_category,
+            experience=experience, goal=goal, days_per_week=days_per_week,
+        )
+        save_plan_data(plan, data)
+        return 'ai'
+    except Exception:
+        logger.exception("AI plan failed, using rule-based fallback")
+        plan.days.all().delete()
+        save_rule_based(plan, get_recommendation(bmi_category, goal))
+        return 'rule'
+
+
+@login_required
+@require_POST
+def suggest_workout_plan(request):
+    plan, _ = WorkoutPlan.objects.get_or_create(user=request.user)
+
+    if plan.days.exists():
+        messages.info(request, "You already have a workout plan. Clear it first if you want a new suggestion.")
+        return redirect('workout_plan')
+
+    try:
+        height_m = float(request.POST['height_cm']) / 100
+        weight = float(request.POST['weight_kg'])
+        age = int(request.POST['age'])
+        days_per_week = min(max(int(request.POST.get('days_per_week', 4)), 2), 6)
+        if not (1.2 <= height_m <= 2.3 and 30 <= weight <= 250):
+            raise ValueError
+    except (KeyError, ValueError):
+        messages.error(request, "Please enter a valid height, weight and age.")
+        return redirect('workout_plan')
+
+    goal = request.POST.get('goal', 'maintain')
+    if goal not in VALID_GOALS:
+        goal = 'maintain'
+
+    experience = request.POST.get('experience', 'beginner')
+    if experience not in VALID_EXPERIENCE:
+        experience = 'beginner'
+
+    bmi = weight / (height_m ** 2)
+    bmi_category = bmi_category_for(bmi)
+
+    source = create_plan_for_member(
+        plan, bmi=bmi, bmi_category=bmi_category, goal=goal,
+        age=age, experience=experience, days_per_week=days_per_week,
+    )
+
+    label = "AI plan" if source == 'ai' else "Suggested plan"
+    messages.success(
+        request,
+        f"{label} created (BMI {bmi:.1f}, {bmi_category}). Feel free to customize it."
+    )
+    return redirect('workout_plan')
+
+
+
+from django.http import HttpResponse, Http404
+from django.shortcuts import get_object_or_404, render
+from .models import Subscription
+from .receipts import build_receipt_pdf, receipt_data, is_paid
+
+
+@login_required
+def my_payments(request):
+    subscriptions = (
+        Subscription.objects.filter(user=request.user)
+        .select_related('package')
+        .order_by('-created_at')
+    )
+    rows = [dict(receipt_data(s), paid=is_paid(s)) for s in subscriptions]
+    return render(request, 'app/my_payments.html', {'rows': rows})
+
+
+@login_required
+def download_receipt(request, payment_id):
+    subscription = get_object_or_404(Subscription, pk=payment_id)
+
+    # Members can only download their own receipts (staff can download any)
+    if subscription.user_id != request.user.id and not request.user.is_staff:
+        raise Http404
+
+    pdf = build_receipt_pdf(subscription)
+    response = HttpResponse(pdf, content_type='application/pdf')
+    response['Content-Disposition'] = (
+        f'attachment; filename="FitTrack-Receipt-{subscription.pk:06d}.pdf"'
+    )
+    return response

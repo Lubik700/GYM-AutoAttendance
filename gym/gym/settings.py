@@ -44,7 +44,7 @@ INSTALLED_APPS = [
     'adminpanel',
 ]
 TAILWIND_APP_NAME = "theme"
-
+MEMBERSHIP_GRACE_DAYS = 5
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -53,6 +53,9 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'app.middleware.MembershipLockMiddleware',
 ]
 
 ROOT_URLCONF = 'gym.urls'
@@ -143,6 +146,7 @@ EMAIL_HOST_USER = config('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD')
 DEFAULT_FROM_EMAIL = f'FitTrack <{config("EMAIL_HOST_USER")}>'
 
+SITE_URL = 'http://127.0.0.1:8000'
 
 
 
@@ -183,3 +187,7 @@ CSRF_TRUSTED_ORIGINS = [
     'https://localhost',
     'https://127.0.0.1'
 ]
+
+# settings.py
+import os
+ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY", "")

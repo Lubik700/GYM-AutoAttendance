@@ -210,19 +210,27 @@ class CustomPasswordChangeForm(DjangoPasswordChangeForm):
             field.widget.attrs.update({'class': 'input-field'})
 
 
+
+
 class BMIForm(forms.ModelForm):
+    days_per_week = forms.TypedChoiceField(
+        choices=[(n, f"{n} days") for n in range(2, 7)],
+        coerce=int,
+        initial=4,
+        label="Workout days per week",
+    )
+
     class Meta:
         model = BMIRecord
-        fields = ['height_cm', 'weight_kg', 'age', 'activity_level', 'goal']
-        widgets = {
-            'height_cm': forms.NumberInput(attrs={'class': 'input-field', 'placeholder': 'e.g. 170', 'step': '0.1'}),
-            'weight_kg': forms.NumberInput(attrs={'class': 'input-field', 'placeholder': 'e.g. 65', 'step': '0.1'}),
-            'age': forms.NumberInput(attrs={'class': 'input-field', 'placeholder': 'e.g. 25'}),
-            'activity_level': forms.Select(attrs={'class': 'input-field'}),
-            'goal': forms.Select(attrs={'class': 'input-field'}),
-        }
-
-
+        fields = [
+            'height_cm',
+            'weight_kg',
+            'age',
+            'activity_level',
+            'goal',
+            'experience_level',   # NEW in the form (already on the model)
+            'days_per_week',      # NEW (needs the model field below)
+        ]
 
 from .models import Notice
 

@@ -1,4 +1,5 @@
 {% extends 'app/base.html' %}
+{% load l10n %}
 {% block title %}BMI Calculator & Plan Advisor | FitTrack{% endblock %}
 
 {% block content %}
@@ -17,7 +18,7 @@
             BMI Calculator
         </h1>
         <p class="text-slate-400 text-sm mt-0.5">
-            Calculate your Body Mass Index and receive a customized workout split based on your goals.
+            Log your latest measurements and keep your workout plan in sync with your body and goals.
         </p>
     </div>
 
@@ -106,14 +107,47 @@
                 </div>
             </div>
 
+            <!-- Experience Level & Days Per Week Row (NEW) -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
+                        Experience Level <span class="text-emerald-400">*</span>
+                    </label>
+                    <div class="relative [&>select]:w-full [&>select]:bg-slate-950/70 [&>select]:border [&>select]:border-white/10 [&>select]:focus:border-emerald-500 [&>select]:focus:ring-1 [&>select]:focus:ring-emerald-500 [&>select]:text-white [&>select]:text-sm [&>select]:rounded-xl [&>select]:px-4 [&>select]:py-3 [&>select]:transition-all [&>input]:w-full [&>input]:bg-slate-950/70 [&>input]:border [&>input]:border-white/10 [&>input]:focus:border-emerald-500 [&>input]:text-white [&>input]:text-sm [&>input]:rounded-xl [&>input]:px-4 [&>input]:py-3">
+                        {{ form.experience_level }}
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2">
+                        Workout Days Per Week <span class="text-emerald-400">*</span>
+                    </label>
+                    <div class="relative [&>select]:w-full [&>select]:bg-slate-950/70 [&>select]:border [&>select]:border-white/10 [&>select]:focus:border-emerald-500 [&>select]:focus:ring-1 [&>select]:focus:ring-emerald-500 [&>select]:text-white [&>select]:text-sm [&>select]:rounded-xl [&>select]:px-4 [&>select]:py-3 [&>select]:transition-all [&>input]:w-full [&>input]:bg-slate-950/70 [&>input]:border [&>input]:border-white/10 [&>input]:focus:border-emerald-500 [&>input]:text-white [&>input]:text-sm [&>input]:rounded-xl [&>input]:px-4 [&>input]:py-3">
+                        {{ form.days_per_week }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Update Workout Plan Option (NEW) -->
+            <label class="flex items-start gap-3 px-4 py-3 rounded-xl bg-white/[0.03] border border-white/10 cursor-pointer">
+                <input type="checkbox" id="update-plan-box" name="update_plan" value="1" checked
+                       class="mt-0.5 w-4 h-4 rounded accent-emerald-400">
+                <span class="text-xs text-slate-300 leading-relaxed">
+                    <span class="font-semibold text-white">Update my workout plan with this entry</span><br>
+                    This replaces your current plan, including any exercises you added or edited.
+                </span>
+            </label>
+            <p id="plan-change-note"
+               class="hidden px-4 py-2.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs"></p>
+
             <!-- Calculate CTA Button -->
             <div class="pt-2">
-                <button type="submit"
-                        class="w-full inline-flex items-center justify-center gap-2 py-3.5 px-6 rounded-xl text-sm font-bold text-slate-950 bg-gradient-to-r from-emerald-400 to-teal-400 hover:from-emerald-300 hover:to-teal-300 shadow-lg shadow-emerald-950/40 hover:shadow-emerald-500/20 active:scale-95 transition-all">
+                <button type="submit" id="bmi-submit"
+                        class="w-full inline-flex items-center justify-center gap-2 py-3.5 px-6 rounded-xl text-sm font-bold text-slate-950 bg-gradient-to-r from-emerald-400 to-teal-400 hover:from-emerald-300 hover:to-teal-300 shadow-lg shadow-emerald-950/40 hover:shadow-emerald-500/20 active:scale-95 transition-all disabled:opacity-60">
                     <svg class="w-4 h-4 text-slate-950" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M13 10V3L4 14h7v7l9-11h-7z"/>
                     </svg>
-                    <span>Calculate BMI & Generate Plan</span>
+                    <span id="bmi-submit-label">Save Entry & Calculate BMI</span>
                 </button>
             </div>
         </form>
@@ -193,13 +227,24 @@
         </div>
 
         <div class="mt-6 pt-5 border-t border-white/[0.08] flex flex-col sm:flex-row items-center justify-between gap-3">
-            <a href="{% url 'apply_recommended_plan' %}"
-               class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-xs sm:text-sm font-bold text-slate-950 bg-gradient-to-r from-emerald-400 to-teal-400 hover:from-emerald-300 hover:to-teal-300 shadow-lg shadow-emerald-950/40 active:scale-95 transition-all">
-                <svg class="w-4 h-4 text-slate-950" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
-                </svg>
-                <span>Apply This Plan to My Routine</span>
-            </a>
+            <!-- Apply form: values come from the saved record (hidden fields) -->
+            <form method="post" action="{% url 'apply_recommended_plan' %}" class="w-full sm:w-auto"
+                  onsubmit="var b = this.querySelector('button'); b.disabled = true; b.querySelector('span').textContent = 'Generating…';">
+                {% csrf_token %}
+                <input type="hidden" name="bmi" value="{{ latest_record.bmi|unlocalize }}">
+                <input type="hidden" name="age" value="{{ latest_record.age|unlocalize }}">
+                <input type="hidden" name="goal" value="{{ latest_record.goal }}">
+                <input type="hidden" name="experience" value="{{ latest_record.experience_level }}">
+                <input type="hidden" name="days_per_week" value="{{ latest_record.days_per_week|unlocalize }}">
+
+                <button type="submit"
+                        class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl text-xs sm:text-sm font-bold text-slate-950 bg-gradient-to-r from-emerald-400 to-teal-400 hover:from-emerald-300 hover:to-teal-300 shadow-lg shadow-emerald-950/40 active:scale-95 transition-all disabled:opacity-60">
+                    <svg class="w-4 h-4 text-slate-950" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    <span>Apply This Plan to My Routine</span>
+                </button>
+            </form>
 
             <a href="{% url 'workout_plan' %}"
                class="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-400 hover:text-white hover:bg-white/5 transition-all">
@@ -210,4 +255,61 @@
     {% endif %}
 
 </div>
+
+<!-- Smart default for the "update my workout plan" checkbox -->
+<script>
+(function () {
+    const hasPlan = {{ has_plan|yesno:"true,false" }};
+    const lastCategory = "{{ last_category|default:''|escapejs }}";
+    const lastGoal = "{{ last_goal|default:''|escapejs }}";
+
+    const h = document.getElementById('id_height_cm');
+    const w = document.getElementById('id_weight_kg');
+    const g = document.getElementById('id_goal');
+    const box = document.getElementById('update-plan-box');
+    const note = document.getElementById('plan-change-note');
+
+    function category(b) {
+        return b < 18.5 ? 'Underweight' : b < 25 ? 'Normal' : b < 30 ? 'Overweight' : 'Obese';
+    }
+
+    function refresh() {
+        // First plan or no history: keep the box ticked
+        if (!box || !note || !hasPlan || !lastCategory || !h || !w) return;
+
+        const height = parseFloat(h.value) / 100;
+        const weight = parseFloat(w.value);
+        if (!(height > 0 && weight > 0)) return;
+
+        const cat = category(weight / (height * height));
+        const reasons = [];
+        if (cat !== lastCategory) {
+            reasons.push('your BMI category changes from ' + lastCategory + ' to ' + cat);
+        }
+        if (g && lastGoal && g.value !== lastGoal) {
+            reasons.push('your goal changed');
+        }
+
+        box.checked = reasons.length > 0;
+        note.textContent = reasons.length ? 'Plan update recommended: ' + reasons.join(' and ') + '.' : '';
+        note.classList.toggle('hidden', reasons.length === 0);
+    }
+
+    [h, w, g].forEach(function (el) { if (el) el.addEventListener('input', refresh); });
+    refresh();
+
+    // Show progress while the AI plan is being generated
+    const form = document.querySelector('form[method="post"]');
+    if (form) {
+        form.addEventListener('submit', function () {
+            const btn = document.getElementById('bmi-submit');
+            const label = document.getElementById('bmi-submit-label');
+            if (btn && label) {
+                btn.disabled = true;
+                label.textContent = (box && box.checked) ? 'Generating your plan…' : 'Saving…';
+            }
+        });
+    }
+})();
+</script>
 {% endblock %}

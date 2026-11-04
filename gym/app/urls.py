@@ -54,6 +54,11 @@ path('reset/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(temp
 path('reset/done/', auth_views.PasswordResetCompleteView.as_view(template_name='app/password_reset_complete.html'), name='password_reset_complete'),
 
 
+
+path('payments/<int:payment_id>/receipt/', views.download_receipt, name='download_receipt'),
+
+path('renew/start/', views.start_renewal, name='start_renewal'),
+
 ]
 
 

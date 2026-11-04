@@ -7,8 +7,8 @@ WORKOUT_RECOMMENDATIONS = {
             'monday':    ('Back & Biceps', [('Deadlifts', 4, '6'), ('Barbell Rows', 3, '8'), ('Bicep Curls', 3, '10')]),
             'tuesday':   ('Legs', [('Squats', 4, '8'), ('Leg Press', 3, '10'), ('Calf Raises', 3, '15')]),
             'wednesday': (None, None),
-            'thursday':  ('Shoulders', [('Overhead Press', 4, '8'), ('Lateral Raises', 3, '12')]),
-            'friday':    ('Full Body', [('Pull-ups', 3, '8'), ('Dips', 3, '10')]),
+            'thursday': ('Shoulders', [('Overhead Press', 4, '8'), ('Lateral Raises', 3, '12'), ('Face Pulls', 3, '12')]),
+            'friday':   ('Full Body', [('Squats', 3, '8'), ('Pull-ups', 3, '8'), ('Dips', 3, '10'), ('Plank', 3, '45 sec')]),
             'saturday':  (None, None),
         }
     },
@@ -34,7 +34,7 @@ WORKOUT_RECOMMENDATIONS = {
             'tuesday':   ('Cardio', [('Cycling', 1, '30 min')]),
             'wednesday': ('Full Body Circuit', [('Lunges', 3, '15'), ('Burpees', 3, '12')]),
             'thursday':  (None, None),
-            'friday':    ('Cardio + Core', [('Running', 1, '25 min'), ('Plank', 3, '45 sec')]),
+            'friday':   ('Light Cardio', [('Brisk Walking', 1, '25 min')]),
             'saturday':  (None, None),
         }
     },
@@ -54,14 +54,18 @@ WORKOUT_RECOMMENDATIONS = {
 }
 
 def get_recommendation(bmi_category, goal):
-    key = (bmi_category, goal)
-    if key in WORKOUT_RECOMMENDATIONS:
-        return WORKOUT_RECOMMENDATIONS[key]
-    # fallback: match by category only if exact (category, goal) pair isn't defined
-    for (cat, g), plan in WORKOUT_RECOMMENDATIONS.items():
-        if cat == bmi_category:
-            return plan
-    return WORKOUT_RECOMMENDATIONS[('Normal', 'maintain')]  # safe default
+    """Goal picks the plan; BMI only adjusts for safety."""
+    if bmi_category == 'Obese':
+        # Low-impact plan for any goal (joint safety first)
+        return WORKOUT_RECOMMENDATIONS[('Obese', 'lose')]
+    if bmi_category == 'Underweight' and goal == 'lose':
+        goal = 'gain'  # never give an underweight member a fat loss plan
+    by_goal = {
+        'gain': ('Underweight', 'gain'),     # strength template
+        'maintain': ('Normal', 'maintain'),
+        'lose': ('Overweight', 'lose'),      # fat loss template
+    }
+    return WORKOUT_RECOMMENDATIONS[by_goal.get(goal, ('Normal', 'maintain'))]
 
 def get_recommendation_by_type(workout_type):
     """

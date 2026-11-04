@@ -341,6 +341,25 @@
             <!-- =================================================
                  LOGIN FORM
             ================================================== -->
+
+
+            {% if renew_prompt %}
+<div class="px-4 py-4 rounded-xl bg-amber-500/10 border border-amber-500/30 space-y-3">
+    <p class="text-sm font-bold text-amber-300">Your membership has expired</p>
+    <p class="text-xs text-slate-300 leading-relaxed">
+        Your membership ended on {{ expired_on|date:"d M Y" }} and the 5-day grace period is over.
+        Renew to get your access back.
+    </p>
+    <form method="post" action="{% url 'start_renewal' %}">
+        {% csrf_token %}
+        <button type="submit"
+                class="w-full inline-flex items-center justify-center gap-2 py-3 px-5 rounded-xl text-sm font-bold text-slate-950 bg-gradient-to-r from-emerald-400 to-teal-400 hover:from-emerald-300 hover:to-teal-300 shadow-lg active:scale-95 transition-all">
+            Renew Membership
+        </button>
+    </form>
+</div>
+{% endif %}
+
             <form
                 method="post"
                 action="{% url 'login' %}"
