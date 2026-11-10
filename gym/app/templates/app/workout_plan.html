@@ -24,13 +24,13 @@
 
         {% if not has_days %}
         <div class="flex flex-wrap items-center gap-2.5">
-            <button type="button" onclick="toggleAiPlan()"
+            <a href="{% url 'bmi_calculator' %}"
                     class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 text-slate-950 text-xs sm:text-sm font-bold shadow-lg shadow-emerald-950/40 active:scale-95 transition-all">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
                 </svg>
                 Suggest AI Plan
-            </button>
+            </a>
             <button type="button" onclick="toggleBuildOwn()"
                     class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-white/10 text-white text-xs sm:text-sm font-semibold active:scale-95 transition-all">
                 <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -67,77 +67,15 @@
                 Get an instant AI-generated routine based on your body stats and goal, or pick individual workout days below to craft your own regimen.
             </p>
             <div class="flex flex-wrap items-center justify-center gap-3">
-                <button type="button" onclick="toggleAiPlan()" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-400 hover:bg-emerald-300 text-slate-950 text-xs font-bold shadow-md transition-all active:scale-95">
+                <a href="{% url 'bmi_calculator' %}" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-400 hover:bg-emerald-300 text-slate-950 text-xs font-bold shadow-md transition-all active:scale-95">
                     <span>Generate My Plan</span>
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
-                </button>
+                </a>
                 <button type="button" onclick="toggleBuildOwn()" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-slate-200 border border-white/10 text-xs font-semibold transition-all">
                     <span>Pick Days Manually</span>
                 </button>
             </div>
         </div>
-    {% endif %}
-
-    <!-- ========== AI PLAN DRAWER ========== -->
-    {% if not has_days %}
-    <div id="ai-plan" class="hidden p-5 rounded-2xl bg-slate-900/90 border border-emerald-500/30 shadow-xl space-y-4">
-        <div class="flex items-center justify-between">
-            <div>
-                <h4 class="text-sm font-bold text-white tracking-tight">Tell us about yourself</h4>
-                <p class="text-xs text-slate-400">We'll build a weekly plan from your body stats and goal. You can edit everything afterwards.</p>
-            </div>
-            <button type="button" onclick="toggleAiPlan()" class="text-slate-400 hover:text-white text-xs p-1">
-                ✕ Close
-            </button>
-        </div>
-
-        <form method="post" action="{% url 'suggest_workout_plan' %}" onsubmit="return startGenerating(this)"
-              class="grid grid-cols-2 sm:grid-cols-3 gap-3">
-            {% csrf_token %}
-            <label class="text-xs text-slate-400 space-y-1">Height (cm)
-                <input type="number" name="height_cm" min="120" max="230" required
-                       class="w-full bg-slate-900 border border-white/10 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 text-white text-xs rounded-xl px-3.5 py-2.5">
-            </label>
-            <label class="text-xs text-slate-400 space-y-1">Weight (kg)
-                <input type="number" name="weight_kg" min="30" max="250" step="0.1" required
-                       class="w-full bg-slate-900 border border-white/10 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 text-white text-xs rounded-xl px-3.5 py-2.5">
-            </label>
-            <label class="text-xs text-slate-400 space-y-1">Age
-                <input type="number" name="age" min="14" max="90" required
-                       class="w-full bg-slate-900 border border-white/10 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 text-white text-xs rounded-xl px-3.5 py-2.5">
-            </label>
-            <label class="text-xs text-slate-400 space-y-1">Goal
-                <select name="goal"
-                        class="w-full bg-slate-900 border border-white/10 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 text-white text-xs rounded-xl px-3.5 py-2.5">
-                    <option value="lose">Lose fat</option>
-                    <option value="maintain" selected>Maintain fitness</option>
-                    <option value="gain">Build muscle</option>
-                </select>
-            </label>
-            <label class="text-xs text-slate-400 space-y-1">Experience
-                <select name="experience"
-                        class="w-full bg-slate-900 border border-white/10 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 text-white text-xs rounded-xl px-3.5 py-2.5">
-                    <option value="beginner" selected>Beginner</option>
-                    <option value="intermediate">Intermediate</option>
-                    <option value="advanced">Advanced</option>
-                </select>
-            </label>
-            <label class="text-xs text-slate-400 space-y-1">Days per week
-                <select name="days_per_week"
-                        class="w-full bg-slate-900 border border-white/10 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 text-white text-xs rounded-xl px-3.5 py-2.5">
-                    {% for n in "23456" %}
-                    <option value="{{ n }}" {% if n == "4" %}selected{% endif %}>{{ n }} days</option>
-                    {% endfor %}
-                </select>
-            </label>
-            <div class="col-span-2 sm:col-span-3">
-                <button type="submit" id="ai-submit"
-                        class="w-full inline-flex items-center justify-center gap-2 text-xs font-bold text-slate-950 bg-emerald-400 hover:bg-emerald-300 py-2.5 px-4 rounded-xl shadow-md transition-all active:scale-95 disabled:opacity-60">
-                    Generate Plan
-                </button>
-            </div>
-        </form>
-    </div>
     {% endif %}
 
     <!-- ========== DAYS LIST & EXERCISES ========== -->
@@ -334,23 +272,6 @@
         }
     }
 
-    function toggleAiPlan() {
-        const el = document.getElementById('ai-plan');
-        if (el) {
-            el.classList.toggle('hidden');
-            if (!el.classList.contains('hidden')) {
-                el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            }
-        }
-    }
 
-    function startGenerating(form) {
-        const btn = document.getElementById('ai-submit');
-        if (btn) {
-            btn.disabled = true;
-            btn.textContent = 'Generating your plan…';
-        }
-        return true;
-    }
 </script>
 {% endblock %}

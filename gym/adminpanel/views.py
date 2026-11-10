@@ -9,8 +9,8 @@ from .decorators import staff_required
 from django.db.models import Q
 
 # Import models/forms from the main app - adminpanel doesn't own its own models
-from app.models import Notice
-from app.forms import NoticeForm
+from app.models import Notice,Equipment
+from app.forms import NoticeForm, EquipmentForm
 
 
 def admin_login_view(request):
@@ -357,3 +357,47 @@ def admin_add_member(request):
         form = AdminCreateMemberForm()
 
     return render(request, 'adminpanel/add_member.html', {'form': form})
+
+
+#Admin Equipment
+
+@staff_required
+def admin_equipments(request):
+    equipments = Equipment.objects.all()
+    return render(request, 'adminpanel/equipments.html', {'equipments': equipments})
+
+
+@staff_required
+def admin_equipment_add(request):
+    if request.method == 'POST':
+        form = EquipmentForm(request.POST,request.FILES)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "New Equipment added.")
+            return redirect('admin_equipments')
+    else:
+        form = EquipmentForm()
+    return render(request, 'adminpanel/equipment_form.html', {'form': form, 'title': 'Add Equipment'})
+
+
+@staff_required
+def admin_equipment_edit(request, equipment_id):
+    equipment = get_object_or_404(Equipment, id=equipment_id)
+    if request.method == 'POST':
+        form = EquipmentForm(request.POST,request.FILES, instance=equipment )
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Equipment updated.")
+            return redirect('admin_equipments')
+    else:
+        form = EquipmentForm(instance=equipment)
+    return render(request, 'adminpanel/equipment_form.html', {'form': form, 'title': 'Edit Equipment'})
+
+
+@staff_required
+def admin_equipment_delete(request, equipment_id):
+    equipment = get_object_or_404(Equipment, id=equipment_id)
+    equipment.delete()
+    messages.success(request, "Equipment deleted.")
+    return redirect('admin_equipments')
+

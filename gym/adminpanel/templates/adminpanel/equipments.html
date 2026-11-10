@@ -1,0 +1,103 @@
+{% extends 'adminpanel/base.html' %}
+{% block title %}Equipments | FitTrack Admin{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+    <h1 class="font-display text-2xl font-bold">Equipments</h1>
+
+    <a href="{% url 'admin_equipment_add' %}"
+       class="bg-primary hover:bg-red-600 text-white text-sm font-medium px-4 py-2.5 rounded-xl transition-colors">
+        + Add Equipment
+    </a>
+</div>
+
+<div class="space-y-3">
+    {% for equipment in equipments %}
+        <div class="bg-dark-card border border-white/5 rounded-2xl p-5 flex items-center justify-between gap-4">
+
+            <!-- Equipment Details -->
+            <div class="flex items-center gap-4 min-w-0">
+
+                <!-- Equipment Image -->
+                {% if equipment.image %}
+                    <img src="{{ equipment.image.url }}"
+                         alt="{{ equipment.name }}"
+                         class="w-16 h-16 object-cover rounded-xl border border-white/10 shrink-0">
+                {% else %}
+                    <div class="w-16 h-16 rounded-xl bg-dark-bg border border-white/5 flex items-center justify-center shrink-0">
+                        <span class="text-gray-500 text-xs">No Image</span>
+                    </div>
+                {% endif %}
+
+                <div class="min-w-0">
+                    <h3 class="text-white font-medium truncate">
+                        {{ equipment.name }}
+                    </h3>
+
+                    <p class="text-xs text-gray-400 mt-1 line-clamp-1">
+                        {{ equipment.specification|default:"No specification provided"|truncatewords:20 }}
+                    </p>
+
+                    <div class="flex flex-wrap items-center gap-2 mt-2">
+
+                        <!-- Condition -->
+                        {% if equipment.condition == 'new' %}
+                            <span class="text-[10px] font-semibold uppercase px-2 py-0.5 rounded-md bg-green-500/15 text-green-400 border border-green-500/25">
+                                New
+                            </span>
+                        {% elif equipment.condition == 'good' %}
+                            <span class="text-[10px] font-semibold uppercase px-2 py-0.5 rounded-md bg-blue-500/15 text-blue-400 border border-blue-500/25">
+                                Good
+                            </span>
+                        {% elif equipment.condition == 'fair' %}
+                            <span class="text-[10px] font-semibold uppercase px-2 py-0.5 rounded-md bg-yellow-500/15 text-yellow-400 border border-yellow-500/25">
+                                Fair
+                            </span>
+                        {% elif equipment.condition == 'needs_repair' %}
+                            <span class="text-[10px] font-semibold uppercase px-2 py-0.5 rounded-md bg-red-500/15 text-red-400 border border-red-500/25">
+                                Needs Repair
+                            </span>
+                        {% endif %}
+
+                        <span class="text-xs text-gray-400">
+                            Quantity: {{ equipment.quantity }}
+                        </span>
+
+                        {% if equipment.brand %}
+                            <span class="text-xs text-gray-500">
+                                Brand: {{ equipment.brand }}
+                            </span>
+                        {% endif %}
+                    </div>
+
+                    <p class="text-xs text-gray-600 mt-1">
+                        Added: {{ equipment.added_at|date:"d M Y, h:i A" }}
+                    </p>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex gap-2 shrink-0">
+                <a href="{% url 'admin_equipment_edit' equipment.id %}"
+                   class="text-xs text-gray-300 hover:text-primary px-3 py-1.5 rounded-lg hover:bg-white/5 transition-colors">
+                    Edit
+                </a>
+
+                <a href="{% url 'admin_equipment_delete' equipment.id %}"
+                   onclick="return confirm('Delete this equipment? This cannot be undone.');"
+                   class="text-xs text-red-400 hover:text-red-300 px-3 py-1.5 rounded-lg hover:bg-red-500/10 transition-colors">
+                    Delete
+                </a>
+            </div>
+
+        </div>
+
+    {% empty %}
+        <div class="bg-dark-card border border-white/5 rounded-2xl p-10 text-center">
+            <p class="text-gray-500 text-sm">
+                No equipment available yet. Click "Add Equipment" to create one.
+            </p>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}

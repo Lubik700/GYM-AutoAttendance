@@ -232,7 +232,7 @@ class BMIForm(forms.ModelForm):
             'days_per_week',      # NEW (needs the model field below)
         ]
 
-from .models import Notice
+from .models import Notice, Equipment
 
 class NoticeForm(forms.ModelForm):
     class Meta:
@@ -243,7 +243,30 @@ class NoticeForm(forms.ModelForm):
             'description': forms.Textarea(attrs={'class': 'admin-input', 'rows': 4}),
         }
 
+class EquipmentForm(forms.ModelForm):
+    class Meta:
+        model = Equipment
+        fields = [
+            'name',
+            'specification',
+            'condition',
+            'quantity',
+            'brand',
+            'image'
+        ]
 
+        widgets = {
+            'name': forms.TextInput(attrs={'class': 'admin-input'}),
+
+            'specification': forms.Textarea(attrs={'class': 'admin-input'}),
+
+            'condition': forms.Select(attrs={'class': 'admin-input'}),
+
+            'quantity': forms.NumberInput(attrs={'class': 'admin-input'}),
+
+            'brand': forms.TextInput(attrs={'class': 'admin-input'}),
+
+        }
 
 from .models import Trainer, MembershipPackage
 from django import forms
